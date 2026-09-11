@@ -228,7 +228,6 @@ function convertPageToEvent(page) {
   const properties =
     page.properties || {};
 
-
   return {
 
     Name:
@@ -240,6 +239,9 @@ function convertPageToEvent(page) {
       getPropertyValue(
         properties.Date
       ),
+
+    Image:
+      page.cover?.file?.url || null,
 
     Hashtag:
       getPropertyValue(
