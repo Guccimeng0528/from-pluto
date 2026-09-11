@@ -661,246 +661,103 @@ function createEventCard(event) {
    UPDATE STATISTICS
 ========================================================= */
 
+function normalizeValue(value) {
+    return String(value || "")
+        .trim()
+        .toUpperCase()
+        .replace(/[\s_-]+/g, "");
+}
+
+
 function updateStats() {
 
-    /*
-        =====================================================
-        ARTIST STATS
-        =====================================================
+    const total = events.length;
 
-        Based on:
+    // Artist statistics
+    const namtanEvents = events.filter(event =>
+        normalizeValue(event.NAMTANFILM) === "NAMTAN"
+    ).length;
 
-        event.NAMTANFILM
+    const filmEvents = events.filter(event =>
+        normalizeValue(event.NAMTANFILM) === "FILM"
+    ).length;
 
-        Expected values:
-
-        NAMTAN
-        FILM
-        NAMTANFILM
-    */
-
-
-    const total =
-        events.length;
+    const namtanfilmEvents = events.filter(event =>
+        normalizeValue(event.NAMTANFILM) === "NAMTANFILM"
+    ).length;
 
 
-    const namtanEvents =
-        events.filter(event =>
-            String(event.NAMTANFILM || "")
-                .trim()
-                .toUpperCase() === "NAMTAN"
-        ).length;
+    // Type statistics
+    const seriesEvents = events.filter(event =>
+        normalizeValue(event.Type) === "SERIES"
+    ).length;
+
+    const fanmeetingEvents = events.filter(event =>
+        normalizeValue(event.Type) === "FANMEETING"
+    ).length;
+
+    const concertEvents = events.filter(event =>
+        normalizeValue(event.Type) === "CONCERT"
+    ).length;
 
 
-    const filmEvents =
-        events.filter(event =>
-            String(event.NAMTANFILM || "")
-                .trim()
-                .toUpperCase() === "FILM"
-        ).length;
+    // Everything else
+    const otherEvents = events.filter(event => {
 
+        const type = normalizeValue(event.Type);
 
-    const namtanfilmEvents =
-        events.filter(event =>
-            String(event.NAMTANFILM || "")
-                .trim()
-                .toUpperCase() === "NAMTANFILM"
-        ).length;
-
-
-    /*
-        =====================================================
-        TYPE STATS
-        =====================================================
-
-        Series
-        Fan Meeting
-        Concert
-        Other Events = everything else
-    */
-
-
-    const seriesEvents =
-        events.filter(event =>
-            String(event.Type || "")
-                .trim()
-                .toUpperCase() === "SERIES"
-        ).length;
-
-
-    const fanmeetingEvents =
-        events.filter(event =>
-            String(event.Type || "")
-                .trim()
-                .toUpperCase() === "FAN MEETING"
-        ).length;
-
-
-    const concertEvents =
-        events.filter(event =>
-            String(event.Type || "")
-                .trim()
-                .toUpperCase() === "CONCERT"
-        ).length;
-
-
-    /*
-        Other Events
-
-        Everything that is NOT:
-
-        Series
-        Fan Meeting
-        Concert
-    */
-
-    const otherEvents =
-        events.filter(event => {
-
-            const type =
-                String(event.Type || "")
-                    .trim()
-                    .toUpperCase();
-
-
-            return (
-                type !== "SERIES" &&
-                type !== "FAN MEETING" &&
-                type !== "CONCERT"
-            );
-
-        }).length;
-
-
-    /*
-        =====================================================
-        UPDATE HTML
-        =====================================================
-    */
-
-
-    /*
-        FIRST ROW
-    */
-
-    const totalCount =
-        document.getElementById(
-            "totalCount"
+        return (
+            type !== "SERIES" &&
+            type !== "FANMEETING" &&
+            type !== "CONCERT"
         );
 
-
-    const namtanCount =
-        document.getElementById(
-            "namtanCount"
-        );
+    }).length;
 
 
-    const filmCount =
-        document.getElementById(
-            "filmCount"
-        );
+    // Update DOM
 
+    const totalCount = document.getElementById("totalCount");
+    const namtanCount = document.getElementById("namtanCount");
+    const filmCount = document.getElementById("filmCount");
+    const namtanfilmCount = document.getElementById("namtanfilmCount");
 
-    const namtanfilmCount =
-        document.getElementById(
-            "namtanfilmCount"
-        );
-
-
-    /*
-        SECOND ROW
-    */
-
-    const seriesCount =
-        document.getElementById(
-            "seriesCount"
-        );
-
-
-    const fanmeetingCount =
-        document.getElementById(
-            "fanmeetingCount"
-        );
-
-
-    const concertCount =
-        document.getElementById(
-            "concertCount"
-        );
-
-
-    const otherEventsCount =
-        document.getElementById(
-            "otherEventsCount"
-        );
-
-
-    /*
-        Set values
-    */
+    const seriesCount = document.getElementById("seriesCount");
+    const fanmeetingCount = document.getElementById("fanmeetingCount");
+    const concertCount = document.getElementById("concertCount");
+    const otherEventsCount = document.getElementById("otherEventsCount");
 
 
     if (totalCount) {
-
-        totalCount.textContent =
-            total;
-
+        totalCount.textContent = total;
     }
-
 
     if (namtanCount) {
-
-        namtanCount.textContent =
-            namtanEvents;
-
+        namtanCount.textContent = namtanEvents;
     }
-
 
     if (filmCount) {
-
-        filmCount.textContent =
-            filmEvents;
-
+        filmCount.textContent = filmEvents;
     }
-
 
     if (namtanfilmCount) {
-
-        namtanfilmCount.textContent =
-            namtanfilmEvents;
-
+        namtanfilmCount.textContent = namtanfilmEvents;
     }
-
 
     if (seriesCount) {
-
-        seriesCount.textContent =
-            seriesEvents;
-
+        seriesCount.textContent = seriesEvents;
     }
-
 
     if (fanmeetingCount) {
-
-        fanmeetingCount.textContent =
-            fanmeetingEvents;
-
+        fanmeetingCount.textContent = fanmeetingEvents;
     }
-
 
     if (concertCount) {
-
-        concertCount.textContent =
-            concertEvents;
-
+        concertCount.textContent = concertEvents;
     }
 
-
     if (otherEventsCount) {
-
-        otherEventsCount.textContent =
-            otherEvents;
-
+        otherEventsCount.textContent = otherEvents;
     }
 
 }
