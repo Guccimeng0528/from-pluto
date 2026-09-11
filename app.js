@@ -239,7 +239,7 @@ async function loadEvents() {
 
         const response =
             await fetch(
-                "/schedule",
+                "/api/events",
                 {
                     cache: "no-store"
                 }
@@ -249,7 +249,7 @@ async function loadEvents() {
         if (!response.ok) {
 
             throw new Error(
-                "Unable to load /schedule"
+                "Unable to load /api/events"
             );
 
         }
@@ -262,7 +262,7 @@ async function loadEvents() {
         if (!Array.isArray(data)) {
 
             throw new Error(
-                "/schedule must return an array"
+                "/api/events must return an array"
             );
 
         }
@@ -273,7 +273,7 @@ async function loadEvents() {
     } catch (error) {
 
         console.warn(
-            "/schedule could not be loaded. Using sample data.",
+            "/api/events could not be loaded. Using sample data.",
             error
         );
 
