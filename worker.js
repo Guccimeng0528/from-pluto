@@ -321,15 +321,8 @@ function getPropertyValue(property) {
 
     case "multi_select":
 
-      return (
-        property.multi_select
-          ?.map(
-            item =>
-              item.name
-          )
-          .join(", ")
-        || null
-      );
+    return property.multi_select
+        ?.map(item => item.name) || [];
 
 
     case "date":
