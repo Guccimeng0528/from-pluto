@@ -485,16 +485,27 @@ a {
 
 /* STAT CARD COLOR PATTERN */
 
-/* 🟦 🟨 🟦 🟨 */
-/* 🟨 🟦 🟨 🟦 */
+/* =========================================================
+   STAT CARD CHECKERBOARD PATTERN
+   Row 1: 🟦 🟨 🟦 🟨
+   Row 2: 🟨 🟦 🟨 🟦
+   Row 3: 🟦 🟨 🟦 🟨
+   Row 4: 🟨 🟦 🟨 🟦
+   ========================================================= */
 
-.stat-card:nth-child(4n + 1)::before,
-.stat-card:nth-child(4n + 3)::before {
+/* Default — 4 columns */
+
+.stat-card:nth-child(8n + 1)::before,
+.stat-card:nth-child(8n + 3)::before,
+.stat-card:nth-child(8n + 6)::before,
+.stat-card:nth-child(8n + 8)::before {
     background: var(--teal-primary);
 }
 
-.stat-card:nth-child(4n + 2)::before,
-.stat-card:nth-child(4n + 4)::before {
+.stat-card:nth-child(8n + 2)::before,
+.stat-card:nth-child(8n + 4)::before,
+.stat-card:nth-child(8n + 5)::before,
+.stat-card:nth-child(8n + 7)::before {
     background: var(--yellow-primary);
 }
 
