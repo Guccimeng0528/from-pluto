@@ -2092,31 +2092,37 @@ function closeModal() {
    FORMAT SHORT DATE
 ========================================================= */
 
-function formatShortDate(dateString) {
-  if (!dateString) return "";
+function formatFullDate(dateString) {
+    if (!dateString) return "—";
 
-  const date = parseEventDate(dateString);
-  if (!date) return dateString;
+    const date = parseEventDate(dateString);
 
-  // 判斷原始資料是否包含時間
-  const hasTime = /T\d{2}:\d{2}/.test(String(dateString));
+    if (!date) {
+        return dateString;
+    }
 
-  const options = {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  };
+    const hasTime =
+        /T\d{2}:\d{2}/.test(
+            String(dateString)
+        );
 
-  // 有時間才顯示 HH:MM
-  if (hasTime) {
-    options.hour = "2-digit";
-    options.minute = "2-digit";
-    options.hour12 = false;
-  }
+    const options = {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    };
 
-  return new Intl.DateTimeFormat("en-GB", options).format(date);
+    if (hasTime) {
+        options.hour = "2-digit";
+        options.minute = "2-digit";
+        options.hour12 = false;
+    }
+
+    return new Intl.DateTimeFormat(
+        "en-GB",
+        options
+    ).format(date);
 }
-
 
 /* =========================================================
    FORMAT FULL DATE
