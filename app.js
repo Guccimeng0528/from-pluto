@@ -1,5 +1,5 @@
 /* =========================================================
-   FROM PLUTO — NAMTANFILM ARCHIVE
+   FROM PLUTO â€” NAMTANFILM ARCHIVE
    Event Archive
    Author: Guccimeng
    ========================================================= */
@@ -33,7 +33,7 @@ let filteredEvents = [];
 
 let currentPage = 1;
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 16;
 
 
 /* =========================================================
@@ -624,7 +624,7 @@ function createEventCard(event) {
             <div class="event-location">
                 ?
                 ${escapeHTML(
-                    event.Location || "—"
+                    event.Location || "â€”"
                 )}
             </div>
 
@@ -1001,7 +1001,7 @@ function openModal(event) {
 
     modalLocation.textContent =
         event.Location ||
-        "—";
+        "â€”";
 
 
     /*
@@ -1047,7 +1047,7 @@ function openModal(event) {
 
         description =
             extraInfo.length > 0
-                ? extraInfo.join(" · ")
+                ? extraInfo.join(" Â· ")
                 : "No description available.";
 
     }
@@ -1175,7 +1175,7 @@ function formatShortDate(dateString) {
 
 
     if (!date) {
-        return dateString || "—";
+        return dateString || "â€”";
     }
 
 
@@ -1202,7 +1202,7 @@ function formatFullDate(dateString) {
 
 
     if (!date) {
-        return dateString || "—";
+        return dateString || "â€”";
     }
 
 
