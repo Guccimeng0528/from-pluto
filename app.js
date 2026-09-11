@@ -269,6 +269,7 @@ async function loadEvents() {
 
 
         events = data;
+        populateTypeFilter();
 
     } catch (error) {
 
