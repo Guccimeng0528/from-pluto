@@ -225,6 +225,8 @@ async function getSchedule(request, env, ctx) {
 
 function convertPageToEvent(page) {
 
+  console.log("NOTION COVER:", JSON.stringify(page.cover));
+
   const properties =
     page.properties || {};
 
