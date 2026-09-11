@@ -2092,33 +2092,29 @@ function closeModal() {
    FORMAT SHORT DATE
 ========================================================= */
 
-function formatShortDate(
-    dateString
-) {
+function formatShortDate(dateString) {
+  if (!dateString) return "";
 
-    const date =
-        parseEventDate(
-            dateString
-        );
+  const date = parseEventDate(dateString);
+  if (!date) return dateString;
 
+  // 判斷原始資料是否包含時間
+  const hasTime = /T\d{2}:\d{2}/.test(String(dateString));
 
-    if (!date) {
+  const options = {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  };
 
-        return dateString ||
-            "—";
+  // 有時間才顯示 HH:MM
+  if (hasTime) {
+    options.hour = "2-digit";
+    options.minute = "2-digit";
+    options.hour12 = false;
+  }
 
-    }
-
-
-    return new Intl.DateTimeFormat(
-        "en-GB",
-        {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-        }
-    ).format(date);
-
+  return new Intl.DateTimeFormat("en-GB", options).format(date);
 }
 
 
