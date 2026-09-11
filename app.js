@@ -656,66 +656,254 @@ function createEventCard(event) {
 }
 
 
+
 /* =========================================================
    UPDATE STATISTICS
 ========================================================= */
 
 function updateStats() {
 
-    const total = events.length;
+    /*
+        =====================================================
+        ARTIST STATS
+        =====================================================
+
+        Based on:
+
+        event.NAMTANFILM
+
+        Expected values:
+
+        NAMTAN
+        FILM
+        NAMTANFILM
+    */
 
 
-    const live =
-        events.filter(
-            event => event.Type === "Live"
+    const total =
+        events.length;
+
+
+    const namtanEvents =
+        events.filter(event =>
+            String(event.NAMTANFILM || "")
+                .trim()
+                .toUpperCase() === "NAMTAN"
         ).length;
 
 
-    const fanMeetings =
-        events.filter(
-            event => event.Type === "Fan Meeting"
+    const filmEvents =
+        events.filter(event =>
+            String(event.NAMTANFILM || "")
+                .trim()
+                .toUpperCase() === "FILM"
         ).length;
 
 
-    const other =
-        events.filter(
-            event =>
-                event.Type !== "Live" &&
-                event.Type !== "Fan Meeting"
+    const namtanfilmEvents =
+        events.filter(event =>
+            String(event.NAMTANFILM || "")
+                .trim()
+                .toUpperCase() === "NAMTANFILM"
         ).length;
 
+
+    /*
+        =====================================================
+        TYPE STATS
+        =====================================================
+
+        Series
+        Fan Meeting
+        Concert
+        Other Events = everything else
+    */
+
+
+    const seriesEvents =
+        events.filter(event =>
+            String(event.Type || "")
+                .trim()
+                .toUpperCase() === "SERIES"
+        ).length;
+
+
+    const fanmeetingEvents =
+        events.filter(event =>
+            String(event.Type || "")
+                .trim()
+                .toUpperCase() === "FAN MEETING"
+        ).length;
+
+
+    const concertEvents =
+        events.filter(event =>
+            String(event.Type || "")
+                .trim()
+                .toUpperCase() === "CONCERT"
+        ).length;
+
+
+    /*
+        Other Events
+
+        Everything that is NOT:
+
+        Series
+        Fan Meeting
+        Concert
+    */
+
+    const otherEvents =
+        events.filter(event => {
+
+            const type =
+                String(event.Type || "")
+                    .trim()
+                    .toUpperCase();
+
+
+            return (
+                type !== "SERIES" &&
+                type !== "FAN MEETING" &&
+                type !== "CONCERT"
+            );
+
+        }).length;
+
+
+    /*
+        =====================================================
+        UPDATE HTML
+        =====================================================
+    */
+
+
+    /*
+        FIRST ROW
+    */
 
     const totalCount =
-        document.getElementById("totalCount");
+        document.getElementById(
+            "totalCount"
+        );
 
-    const liveCount =
-        document.getElementById("liveCount");
+
+    const namtanCount =
+        document.getElementById(
+            "namtanCount"
+        );
+
+
+    const filmCount =
+        document.getElementById(
+            "filmCount"
+        );
+
+
+    const namtanfilmCount =
+        document.getElementById(
+            "namtanfilmCount"
+        );
+
+
+    /*
+        SECOND ROW
+    */
+
+    const seriesCount =
+        document.getElementById(
+            "seriesCount"
+        );
+
 
     const fanmeetingCount =
-        document.getElementById("fanmeetingCount");
+        document.getElementById(
+            "fanmeetingCount"
+        );
 
-    const eventCount =
-        document.getElementById("eventCount");
+
+    const concertCount =
+        document.getElementById(
+            "concertCount"
+        );
+
+
+    const otherEventsCount =
+        document.getElementById(
+            "otherEventsCount"
+        );
+
+
+    /*
+        Set values
+    */
 
 
     if (totalCount) {
-        totalCount.textContent = total;
+
+        totalCount.textContent =
+            total;
+
     }
 
-    if (liveCount) {
-        liveCount.textContent = live;
+
+    if (namtanCount) {
+
+        namtanCount.textContent =
+            namtanEvents;
+
     }
+
+
+    if (filmCount) {
+
+        filmCount.textContent =
+            filmEvents;
+
+    }
+
+
+    if (namtanfilmCount) {
+
+        namtanfilmCount.textContent =
+            namtanfilmEvents;
+
+    }
+
+
+    if (seriesCount) {
+
+        seriesCount.textContent =
+            seriesEvents;
+
+    }
+
 
     if (fanmeetingCount) {
-        fanmeetingCount.textContent = fanMeetings;
+
+        fanmeetingCount.textContent =
+            fanmeetingEvents;
+
     }
 
-    if (eventCount) {
-        eventCount.textContent = other;
+
+    if (concertCount) {
+
+        concertCount.textContent =
+            concertEvents;
+
+    }
+
+
+    if (otherEventsCount) {
+
+        otherEventsCount.textContent =
+            otherEvents;
+
     }
 
 }
-
 
 /* =========================================================
    PAGINATION
