@@ -2092,10 +2092,73 @@ function closeModal() {
    FORMAT SHORT DATE
 ========================================================= */
 
-function formatFullDate(dateString) {
-    if (!dateString) return "—";
+function formatShortDate(dateString) {
 
-    const date = parseEventDate(dateString);
+    if (!dateString) {
+        return "";
+    }
+
+
+    const date =
+        parseEventDate(dateString);
+
+
+    if (!date) {
+        return dateString;
+    }
+
+
+    const hasTime =
+        /T\d{2}:\d{2}/.test(
+            String(dateString)
+        );
+
+
+    const options = {
+
+        day: "2-digit",
+
+        month: "short",
+
+        year: "numeric"
+
+    };
+
+
+    if (hasTime) {
+
+        options.hour =
+            "2-digit";
+
+        options.minute =
+            "2-digit";
+
+        options.hour12 =
+            false;
+
+    }
+
+
+    return new Intl.DateTimeFormat(
+        "en-GB",
+        options
+    ).format(date);
+
+}
+
+
+/* =========================================================
+   FORMAT FULL DATE
+========================================================= */
+
+function formatFullDate(dateString) {
+
+    if (!dateString) {
+        return "—";
+    }
+
+    const date =
+        parseEventDate(dateString);
 
     if (!date) {
         return dateString;
@@ -2113,44 +2176,18 @@ function formatFullDate(dateString) {
     };
 
     if (hasTime) {
-        options.hour = "2-digit";
-        options.minute = "2-digit";
-        options.hour12 = false;
+        options.hour =
+            "2-digit";
+        options.minute =
+            "2-digit";
+        options.hour12 =
+            false;
     }
 
     return new Intl.DateTimeFormat(
         "en-GB",
         options
     ).format(date);
-}
-
-/* =========================================================
-   FORMAT FULL DATE
-========================================================= */
-
-function formatLongDate(dateString) {
-  if (!dateString) return "";
-
-  const date = parseEventDate(dateString);
-  if (!date) return dateString;
-
-  // 判斷原始資料是否包含時間
-  const hasTime = /T\d{2}:\d{2}/.test(String(dateString));
-
-  const options = {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  };
-
-  // 有時間才顯示 HH:MM
-  if (hasTime) {
-    options.hour = "2-digit";
-    options.minute = "2-digit";
-    options.hour12 = false;
-  }
-
-  return new Intl.DateTimeFormat("en-GB", options).format(date);
 }
 
 
