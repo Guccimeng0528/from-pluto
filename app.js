@@ -1268,6 +1268,50 @@ function updateStats() {
 }
 
 
+
+
+
+function populateTypeFilter() {
+    if (!typeFilter) {
+        return;
+    }
+
+    const types = new Set();
+
+    events.forEach(event => {
+        if (Array.isArray(event.Type)) {
+            event.Type.forEach(type => {
+                if (type) {
+                    types.add(type);
+                }
+            });
+        } else if (event.Type) {
+            types.add(event.Type);
+        }
+    });
+
+    const sortedTypes = [...types].sort(
+        (a, b) =>
+            a.localeCompare(b)
+    );
+
+    typeFilter.innerHTML = `
+        <option value="">All Types</option>
+        ${sortedTypes
+            .map(type => `
+                <option value="${type}">
+                    ${type}
+                </option>
+            `)
+            .join("")}
+    `;
+}
+
+
+
+
+
+
 /* =========================================================
    PAGINATION
 ========================================================= */
