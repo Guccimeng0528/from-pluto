@@ -1,12 +1,15 @@
+```javascript
 /* =========================================================
    FROM PLUTO — NAMTANFILM ARCHIVE
    Event Archive + Instagram Feed
    Author: Guccimeng
    ========================================================= */
 
+
 /* =========================================================
    SAMPLE DATA
-   ========================================================= */
+========================================================= */
+
 const SAMPLE_EVENTS = [
     {
         Name: "PRO-TEEN SCHOOL TOUR 2025",
@@ -20,38 +23,13 @@ const SAMPLE_EVENTS = [
     }
 ];
 
+
 /* =========================================================
    INSTAGRAM CONFIG
-   ========================================================= */
-
-/*
-    IMPORTANT
-
-    Do NOT put Instagram access tokens in this file.
-
-    GitHub Pages is frontend-only.
-
-    The recommended structure is:
-
-        GitHub Pages
-              ↓
-        Cloudflare Worker
-              ↓
-        Instagram API
-
-    Change this URL later when your Cloudflare Worker
-    is ready.
-*/
+========================================================= */
 
 const INSTAGRAM_API_URL = "./api/instagram";
 
-
-/*
-    Instagram accounts
-
-    These IDs match the HTML IDs that you already added
-    to index.html.
-*/
 
 const INSTAGRAM_ACCOUNTS = [
 
@@ -75,13 +53,6 @@ const INSTAGRAM_ACCOUNTS = [
 
 ];
 
-
-/*
-    Number of posts to display per account.
-
-    The backend can return more posts.
-    The horizontal container will allow scrolling.
-*/
 
 const INSTAGRAM_POST_LIMIT = 20;
 
@@ -219,10 +190,8 @@ async function init() {
     /*
         Load Instagram
 
-        This runs independently from the Event Archive.
-
-        If Instagram fails, the Event Archive will
-        continue working normally.
+        This runs independently from
+        the Event Archive.
     */
 
     loadInstagramFeeds();
@@ -233,6 +202,7 @@ async function init() {
 /* =========================================================
    LOAD EVENTS
 ========================================================= */
+
 async function loadEvents() {
 
     try {
@@ -269,7 +239,7 @@ async function loadEvents() {
 
 
         events = data;
-        populateTypeFilter();
+
 
     } catch (error) {
 
@@ -328,11 +298,6 @@ function parseEventDate(dateString) {
     /*
         First try normal JavaScript
         date parsing.
-
-        Example:
-
-        August 1, 2025
-        January 15, 2026
     */
 
     const date =
@@ -520,6 +485,8 @@ function setupFilters() {
 
     populateMonthFilter();
 
+    populateTypeFilter();
+
 }
 
 
@@ -591,17 +558,235 @@ function populateMonthFilter() {
 
 
 /* =========================================================
+   TYPE FILTER
+========================================================= */
+
+/*
+    Type comes from Notion as a multi-select.
+
+    Example:
+
+        Type: [
+            "Series",
+            "The Invisible Dragon"
+        ]
+
+    This function collects every Type
+    currently used in the Notion data.
+*/
+
+function populateTypeFilter() {
+
+    if (!typeFilter) {
+
+        return;
+
+    }
+
+
+    const types =
+        new Set();
+
+
+    events.forEach(
+        event => {
+
+            if (
+                Array.isArray(
+                    event.Type
+                )
+            ) {
+
+                event.Type.forEach(
+                    type => {
+
+                        if (
+                            type &&
+                            String(type).trim()
+                        ) {
+
+                            types.add(
+                                String(type).trim()
+                            );
+
+                        }
+
+                    }
+                );
+
+            } else if (
+                event.Type
+            ) {
+
+                types.add(
+                    String(
+                        event.Type
+                    ).trim()
+                );
+
+            }
+
+        }
+    );
+
+
+    const sortedTypes =
+        [...types].sort(
+            (a, b) =>
+                a.localeCompare(
+                    b
+                )
+        );
+
+
+    /*
+        Reset dropdown.
+    */
+
+    typeFilter.innerHTML = "";
+
+
+    /*
+        All Types
+    */
+
+    const allOption =
+        document.createElement(
+            "option"
+        );
+
+
+    allOption.value =
+        "";
+
+
+    allOption.textContent =
+        "All Types";
+
+
+    typeFilter.appendChild(
+        allOption
+    );
+
+
+    /*
+        Add every Type.
+    */
+
+    sortedTypes.forEach(
+        type => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                type;
+
+
+            option.textContent =
+                type;
+
+
+            typeFilter.appendChild(
+                option
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   NORMALIZE VALUE
+========================================================= */
+
+function normalizeValue(value) {
+
+    return String(
+        value || ""
+    )
+        .trim()
+        .toUpperCase()
+        .replace(
+            /[\s_-]+/g,
+            ""
+        );
+
+}
+
+
+/* =========================================================
+   FILTER VALUE MATCHER
+========================================================= */
+
+/*
+    Supports both:
+
+        Type: "Event"
+
+    and:
+
+        Type: [
+            "Series",
+            "The Invisible Dragon"
+        ]
+
+    Same logic can also be used
+    for NAMTANFILM.
+*/
+
+function matchesFilterValue(
+    value,
+    selected
+) {
+
+    if (!selected) {
+
+        return true;
+
+    }
+
+
+    const normalizedSelected =
+        normalizeValue(
+            selected
+        );
+
+
+    if (
+        Array.isArray(value)
+    ) {
+
+        return value.some(
+            item =>
+                normalizeValue(
+                    item
+                ) ===
+                normalizedSelected
+        );
+
+    }
+
+
+    return (
+        normalizeValue(
+            value
+        ) ===
+        normalizedSelected
+    );
+
+}
+
+
+/* =========================================================
    APPLY FILTERS
 ========================================================= */
 
 function applyFilters() {
-
-    /*
-        Make sure filter elements exist.
-
-        This allows the same app.js
-        to work on pages without filters.
-    */
 
     const search =
         searchInput
@@ -640,15 +825,7 @@ function applyFilters() {
             event => {
 
                 /*
-                    Searchable fields:
-
-                    Name
-                    Location
-                    NAMTANFILM
-                    Type
-                    Hashtag
-                    KW
-                    Year
+                    Searchable fields
                 */
 
                 const searchableText = [
@@ -668,6 +845,13 @@ function applyFilters() {
                     event.Year
 
                 ]
+
+                    .map(
+                        value =>
+                            Array.isArray(value)
+                                ? value.join(" ")
+                                : value
+                    )
 
                     .filter(
                         value =>
@@ -689,7 +873,8 @@ function applyFilters() {
 
                 const matchesMonth =
                     !month ||
-                    getMonthKey(event) === month;
+                    getMonthKey(event) ===
+                        month;
 
 
                 const matchesDate =
@@ -699,23 +884,17 @@ function applyFilters() {
 
 
                 const matchesArtist =
-                   !artist ||
-                   normalizeValue(event.NAMTANFILM) ===
-                   normalizeValue(artist);
+                    matchesFilterValue(
+                        event.NAMTANFILM,
+                        artist
+                    );
 
 
                 const matchesType =
-                   !type ||
-                   (
-                      Array.isArray(event.Type)
-                      ? event.Type.some(
-                         value =>
-                            normalizeValue(value) ===
-                            normalizeValue(type)
-                         )
-                      : normalizeValue(event.Type) ===
-                      normalizeValue(type)
-                      );
+                    matchesFilterValue(
+                        event.Type,
+                        type
+                    );
 
 
                 return (
@@ -894,14 +1073,6 @@ function createEventCard(event) {
 
     /*
         Event image
-
-        JSON can use:
-
-        "Image": "images/event01.jpg"
-
-        or
-
-        "image": "images/event01.jpg"
     */
 
     const imagePath =
@@ -938,6 +1109,36 @@ function createEventCard(event) {
             `;
 
 
+    /*
+        Type display
+
+        Multi-select array:
+
+        ["Series", "The Invisible Dragon"]
+
+        becomes:
+
+        Series, The Invisible Dragon
+    */
+
+    const typeDisplay =
+        Array.isArray(event.Type)
+            ? event.Type.join(", ")
+            : event.Type || "Other";
+
+
+    /*
+        Artist display
+    */
+
+    const artistDisplay =
+        Array.isArray(
+            event.NAMTANFILM
+        )
+            ? event.NAMTANFILM.join(", ")
+            : event.NAMTANFILM || "N/A";
+
+
     card.innerHTML = `
 
         <div class="event-image">
@@ -964,8 +1165,7 @@ function createEventCard(event) {
                 <span class="tag">
 
                     ${escapeHTML(
-                        event.NAMTANFILM ||
-                        "N/A"
+                        artistDisplay
                     )}
 
                 </span>
@@ -974,8 +1174,7 @@ function createEventCard(event) {
                 <span class="tag">
 
                     ${escapeHTML(
-                        event.Type ||
-                        "Other"
+                        typeDisplay
                     )}
 
                 </span>
@@ -1042,19 +1241,6 @@ function createEventCard(event) {
    UPDATE STATISTICS
 ========================================================= */
 
-function normalizeValue(value) {
-
-    return String(value || "")
-        .trim()
-        .toUpperCase()
-        .replace(
-            /[\s_-]+/g,
-            ""
-        );
-
-}
-
-
 function updateStats() {
 
     const total =
@@ -1068,27 +1254,30 @@ function updateStats() {
     const namtanEvents =
         events.filter(
             event =>
-                normalizeValue(
-                    event.NAMTANFILM
-                ) === "NAMTAN"
+                matchesFilterValue(
+                    event.NAMTANFILM,
+                    "NAMTAN"
+                )
         ).length;
 
 
     const filmEvents =
         events.filter(
             event =>
-                normalizeValue(
-                    event.NAMTANFILM
-                ) === "FILM"
+                matchesFilterValue(
+                    event.NAMTANFILM,
+                    "FILM"
+                )
         ).length;
 
 
     const namtanfilmEvents =
         events.filter(
             event =>
-                normalizeValue(
-                    event.NAMTANFILM
-                ) === "NAMTANFILM"
+                matchesFilterValue(
+                    event.NAMTANFILM,
+                    "NAMTANFILM"
+                )
         ).length;
 
 
@@ -1099,32 +1288,38 @@ function updateStats() {
     const seriesEvents =
         events.filter(
             event =>
-                normalizeValue(
-                    event.Type
-                ) === "SERIES"
+                matchesFilterValue(
+                    event.Type,
+                    "SERIES"
+                )
         ).length;
 
 
     const fanmeetingEvents =
         events.filter(
             event =>
-                normalizeValue(
-                    event.Type
-                ) === "FANMEETING"
+                matchesFilterValue(
+                    event.Type,
+                    "FANMEETING"
+                )
         ).length;
 
 
     const concertEvents =
         events.filter(
             event =>
-                normalizeValue(
-                    event.Type
-                ) === "CONCERT"
+                matchesFilterValue(
+                    event.Type,
+                    "CONCERT"
+                )
         ).length;
 
 
     /*
         Everything else
+
+        Count events that do not contain
+        Series, Fan Meeting, or Concert.
     */
 
     const otherEvents =
@@ -1132,19 +1327,34 @@ function updateStats() {
             event => {
 
                 const type =
-                    normalizeValue(
-                        event.Type
+                    event.Type;
+
+
+                const hasSeries =
+                    matchesFilterValue(
+                        type,
+                        "SERIES"
+                    );
+
+
+                const hasFanMeeting =
+                    matchesFilterValue(
+                        type,
+                        "FANMEETING"
+                    );
+
+
+                const hasConcert =
+                    matchesFilterValue(
+                        type,
+                        "CONCERT"
                     );
 
 
                 return (
-
-                    type !== "SERIES" &&
-
-                    type !== "FANMEETING" &&
-
-                    type !== "CONCERT"
-
+                    !hasSeries &&
+                    !hasFanMeeting &&
+                    !hasConcert
                 );
 
             }
@@ -1267,50 +1477,6 @@ function updateStats() {
     }
 
 }
-
-
-
-
-
-function populateTypeFilter() {
-    if (!typeFilter) {
-        return;
-    }
-
-    const types = new Set();
-
-    events.forEach(event => {
-        if (Array.isArray(event.Type)) {
-            event.Type.forEach(type => {
-                if (type) {
-                    types.add(type);
-                }
-            });
-        } else if (event.Type) {
-            types.add(event.Type);
-        }
-    });
-
-    const sortedTypes = [...types].sort(
-        (a, b) =>
-            a.localeCompare(b)
-    );
-
-    typeFilter.innerHTML = `
-        <option value="">All Types</option>
-        ${sortedTypes
-            .map(type => `
-                <option value="${type}">
-                    ${type}
-                </option>
-            `)
-            .join("")}
-    `;
-}
-
-
-
-
 
 
 /* =========================================================
@@ -1685,8 +1851,14 @@ function openModal(event) {
     if (modalArtist) {
 
         modalArtist.textContent =
-            event.NAMTANFILM ||
-            "N/A";
+            Array.isArray(
+                event.NAMTANFILM
+            )
+                ? event.NAMTANFILM.join(
+                    ", "
+                )
+                : event.NAMTANFILM ||
+                  "N/A";
 
     }
 
@@ -1698,8 +1870,14 @@ function openModal(event) {
     if (modalType) {
 
         modalType.textContent =
-            event.Type ||
-            "Other";
+            Array.isArray(
+                event.Type
+            )
+                ? event.Type.join(
+                    ", "
+                )
+                : event.Type ||
+                  "Other";
 
     }
 
@@ -2148,10 +2326,6 @@ async function loadInstagramAccount(
 
         /*
             Build API URL
-
-            Example:
-
-            ./api/instagram?account=namtan&limit=20
         */
 
         const url =
@@ -2177,9 +2351,6 @@ async function loadInstagramAccount(
 
         /*
             Cache busting
-
-            This makes sure the frontend
-            does not keep an old browser response.
         */
 
         url.searchParams.set(
@@ -2216,8 +2387,7 @@ async function loadInstagramAccount(
 
 
         /*
-            Normalize different possible
-            backend response formats.
+            Normalize response.
         */
 
         const posts =
@@ -2259,12 +2429,6 @@ async function loadInstagramAccount(
         );
 
 
-        /*
-            Do not break the page.
-
-            Show a quiet message instead.
-        */
-
         showInstagramError(
             container,
             account
@@ -2289,16 +2453,6 @@ function normalizeInstagramResponse(
         {
             "data": [...]
         }
-
-        Also supports:
-
-        {
-            "posts": [...]
-        }
-
-        or directly:
-
-        [...]
     */
 
     if (Array.isArray(data)) {
@@ -2412,20 +2566,6 @@ function createInstagramPostCard(
     index
 ) {
 
-    /*
-        Instagram Graph API commonly returns:
-
-        media_type
-        media_url
-        thumbnail_url
-        permalink
-        timestamp
-        children
-
-        We also support alternative names
-        so the Worker can be flexible.
-    */
-
     const mediaType =
         String(
             post.media_type ||
@@ -2441,13 +2581,6 @@ function createInstagramPostCard(
         "";
 
 
-    /*
-        For VIDEO / REELS Instagram often
-        provides thumbnail_url.
-
-        For IMAGE Instagram provides media_url.
-    */
-
     let imageUrl =
         post.thumbnail_url ||
         post.thumbnail ||
@@ -2455,15 +2588,6 @@ function createInstagramPostCard(
         post.image ||
         "";
 
-
-    /*
-        If this is a video and only media_url
-        is available, use it as the image source.
-
-        This is mainly a fallback.
-
-        The API should ideally return thumbnail_url.
-    */
 
     if (!imageUrl) {
 
@@ -2501,10 +2625,7 @@ function createInstagramPostCard(
 
 
     /*
-        Create link.
-
-        Every Instagram card opens
-        the original Instagram post.
+        Create link
     */
 
     const card =
@@ -2516,14 +2637,6 @@ function createInstagramPostCard(
     card.className =
         "instagram-post";
 
-
-    /*
-        Only use target blank when
-        a permalink exists.
-
-        Otherwise the card remains
-        a normal div-like link.
-    */
 
     if (permalink) {
 
@@ -2582,8 +2695,7 @@ function createInstagramPostCard(
 
 
     /*
-        If image fails,
-        show a simple fallback.
+        Image fallback
     */
 
     image.addEventListener(
@@ -2593,31 +2705,40 @@ function createInstagramPostCard(
             image.style.display =
                 "none";
 
+
             const fallback =
                 document.createElement(
                     "div"
                 );
 
+
             fallback.className =
                 "event-image-placeholder";
+
 
             fallback.textContent =
                 "NF";
 
+
             fallback.style.width =
                 "100%";
+
 
             fallback.style.height =
                 "100%";
 
+
             fallback.style.display =
                 "flex";
+
 
             fallback.style.alignItems =
                 "center";
 
+
             fallback.style.justifyContent =
                 "center";
+
 
             card.insertBefore(
                 fallback,
@@ -2635,15 +2756,6 @@ function createInstagramPostCard(
 
     /*
         Carousel indicator
-
-        Only show if the backend tells us
-        this post has multiple children.
-
-        Supported:
-
-        children: [...]
-        children_count
-        media_count
     */
 
     const childrenCount =
@@ -2908,19 +3020,6 @@ function showInstagramError(
    INSTAGRAM REFRESH
 ========================================================= */
 
-/*
-    Optional helper.
-
-    You can call:
-
-        refreshInstagramFeeds();
-
-    from the browser console later.
-
-    It can also be used by a refresh button
-    if you add one in the future.
-*/
-
 async function refreshInstagramFeeds() {
 
     await loadInstagramFeeds();
@@ -2932,16 +3031,6 @@ async function refreshInstagramFeeds() {
    AUTOMATIC INSTAGRAM REFRESH
 ========================================================= */
 
-/*
-    Refresh Instagram periodically.
-
-    15 minutes = 900000 ms
-
-    This does NOT refresh the whole page.
-
-    It only requests the Instagram feed again.
-*/
-
 const INSTAGRAM_REFRESH_INTERVAL =
     15 * 60 * 1000;
 
@@ -2952,9 +3041,6 @@ setInterval(
         /*
             Only refresh when the browser tab
             is visible.
-
-            This avoids unnecessary requests
-            when the user has another tab open.
         */
 
         if (
@@ -2974,3 +3060,4 @@ setInterval(
 /* =========================================================
    END
 ========================================================= */
+```
