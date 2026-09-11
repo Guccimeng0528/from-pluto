@@ -704,8 +704,17 @@ function applyFilters() {
 
 
                 const matchesType =
-                    !type ||
-                    event.Type === type;
+                   !type ||
+                   (
+                      Array.isArray(event.Type)
+                      ? event.Type.some(
+                         value =>
+                            normalizeValue(value) ===
+                            normalizeValue(type)
+                         )
+                      : normalizeValue(event.Type) ===
+                      normalizeValue(type)
+                      );
 
 
                 return (
