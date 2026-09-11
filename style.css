@@ -482,16 +482,20 @@ a {
     background: var(--teal-primary);
 }
 
-.stat-card:nth-child(2)::before {
+
+/* STAT CARD COLOR PATTERN */
+
+/* 🟦 🟨 🟦 🟨 */
+/* 🟨 🟦 🟨 🟦 */
+
+.stat-card:nth-child(4n + 1)::before,
+.stat-card:nth-child(4n + 3)::before {
+    background: var(--teal-primary);
+}
+
+.stat-card:nth-child(4n + 2)::before,
+.stat-card:nth-child(4n + 4)::before {
     background: var(--yellow-primary);
-}
-
-.stat-card:nth-child(3)::before {
-    background: var(--teal-secondary);
-}
-
-.stat-card:nth-child(4)::before {
-    background: var(--yellow-secondary);
 }
 
 .stat-label {
@@ -1666,20 +1670,6 @@ a {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 20px;
-}
-
-/* STAT CARD ACCENT COLORS */
-
-/* 第 1、3、5、7 個：青色 */
-.stat-card:nth-child(4n + 1)::before,
-.stat-card:nth-child(4n + 3)::before {
-    background: var(--teal-primary);
-}
-
-/* 第 2、4、6、8 個：黃色 */
-.stat-card:nth-child(4n + 2)::before,
-.stat-card:nth-child(4n + 4)::before {
-    background: var(--yellow-primary);
 }
 
 .stat-card {
