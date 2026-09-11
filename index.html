@@ -1,14 +1,15 @@
+```html
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>From PLUTO</title>
+    <title>From PLUTO — NamtanFilm Archive</title>
 
     <meta
         name="description"
-        content="NamtanFilm Event Archive - 活動、見面會、Live、行程資料庫"
+        content="From PLUTO — A fan-made archive of Namtan, Film, and NamtanFilm events, live streams, fan meetings, concerts, and activities."
     >
 
     <link rel="stylesheet" href="style.css">
@@ -19,14 +20,14 @@
 <header class="site-header">
     <div class="container header-inner">
 
-        <a href="#" class="logo">
-            <span class="logo-main">NAMTANFILM</span>
-            <span class="logo-sub">From PLUTO</span>
+        <a href="#home" class="logo">
+            <span class="logo-main">FROM PLUTO</span>
+            <span class="logo-sub">ARCHIVE</span>
         </a>
 
         <nav class="nav">
             <a href="#home">Home</a>
-            <a href="#events">Schedule</a>
+            <a href="#events">Events</a>
             <a href="#about">About</a>
         </nav>
 
@@ -36,31 +37,36 @@
 
 <main>
 
-    <!-- HERO -->
+    <!-- =========================
+         HERO
+    ========================== -->
+
     <section class="hero" id="home">
 
         <div class="container hero-inner">
 
             <div class="hero-text">
 
-                <span class="eyebrow">NAMTANFILM ARCHIVE</span>
+                <span class="eyebrow">FROM PLUTO ARCHIVE</span>
 
                 <h1>
-                    Namtan & Film<br>
+                    Namtan &amp; Film
+                    <br>
                     <span>Event Archive</span>
                 </h1>
 
                 <p>
-                    收集 Namtan、Film 以及 NamtanFilm
-                    的公開活動、Live、見面會與相關行程。
+                    A fan-made archive collecting public events,
+                    live streams, fan meetings, concerts, interviews,
+                    and other activities of Namtan, Film, and NamtanFilm.
                 </p>
 
                 <a href="#events" class="hero-button">
-                    瀏覽活動
-                    <span>→</span>
+                    Browse Events <span>→</span>
                 </a>
 
             </div>
+
 
             <div class="hero-decoration">
 
@@ -80,7 +86,10 @@
     </section>
 
 
-    <!-- STATS -->
+    <!-- =========================
+         STATISTICS
+    ========================== -->
+
     <section class="stats-section">
 
         <div class="container stats-grid">
@@ -88,25 +97,25 @@
             <div class="stat-card">
                 <span class="stat-label">TOTAL EVENTS</span>
                 <strong id="totalCount">0</strong>
-                <small>全部活動</small>
+                <small>All recorded events</small>
             </div>
 
             <div class="stat-card">
                 <span class="stat-label">LIVE</span>
                 <strong id="liveCount">0</strong>
-                <small>直播</small>
+                <small>Live streams</small>
             </div>
 
             <div class="stat-card">
                 <span class="stat-label">FAN MEETING</span>
                 <strong id="fanmeetingCount">0</strong>
-                <small>見面會</small>
+                <small>Fan meetings</small>
             </div>
 
             <div class="stat-card">
                 <span class="stat-label">OTHER EVENTS</span>
                 <strong id="eventCount">0</strong>
-                <small>其他活動</small>
+                <small>Other activities</small>
             </div>
 
         </div>
@@ -114,7 +123,10 @@
     </section>
 
 
-    <!-- EVENTS -->
+    <!-- =========================
+         EVENTS
+    ========================== -->
+
     <section class="events-section" id="events">
 
         <div class="container">
@@ -122,13 +134,15 @@
             <div class="section-heading">
 
                 <div>
+
                     <span class="eyebrow">EVENT DATABASE</span>
 
-                    <h2>活動資料庫</h2>
+                    <h2>Event Database</h2>
 
                     <p>
-                        搜尋及瀏覽 NamtanFilm 的活動紀錄
+                        Search and browse the NamtanFilm event archive.
                     </p>
+
                 </div>
 
                 <div class="result-count">
@@ -138,7 +152,8 @@
             </div>
 
 
-            <!-- FILTER -->
+            <!-- FILTERS -->
+
             <div class="filter-box">
 
                 <div class="search-wrapper">
@@ -148,7 +163,8 @@
                     <input
                         type="text"
                         id="searchInput"
-                        placeholder="搜尋活動名稱、地點、藝人..."
+                        placeholder="Search events, locations, artists..."
+                        autocomplete="off"
                     >
 
                 </div>
@@ -156,23 +172,27 @@
 
                 <div class="filter-row">
 
+                    <!-- Month -->
+
                     <div class="filter-item">
 
                         <label for="monthFilter">
-                            月份
+                            Month
                         </label>
 
                         <select id="monthFilter">
-                            <option value="">全部月份</option>
+                            <option value="">All Months</option>
                         </select>
 
                     </div>
 
 
+                    <!-- Date -->
+
                     <div class="filter-item">
 
                         <label for="dateFilter">
-                            日期
+                            Date
                         </label>
 
                         <input
@@ -183,16 +203,18 @@
                     </div>
 
 
+                    <!-- Artist -->
+
                     <div class="filter-item">
 
                         <label for="artistFilter">
-                            藝人
+                            Artist
                         </label>
 
                         <select id="artistFilter">
 
                             <option value="">
-                                全部藝人
+                                All Artists
                             </option>
 
                             <option value="Namtan">
@@ -212,16 +234,18 @@
                     </div>
 
 
+                    <!-- Type -->
+
                     <div class="filter-item">
 
                         <label for="typeFilter">
-                            類型
+                            Type
                         </label>
 
                         <select id="typeFilter">
 
                             <option value="">
-                                全部類型
+                                All Types
                             </option>
 
                             <option value="Live">
@@ -253,11 +277,14 @@
                     </div>
 
 
+                    <!-- Clear -->
+
                     <button
                         id="clearFilters"
                         class="clear-button"
+                        type="button"
                     >
-                        清除篩選
+                        Clear Filters
                     </button>
 
                 </div>
@@ -265,41 +292,63 @@
             </div>
 
 
-            <!-- EVENTS GRID -->
-            <div id="eventsGrid" class="events-grid"></div>
+            <!-- EVENT GRID -->
+
+            <div
+                id="eventsGrid"
+                class="events-grid"
+            ></div>
 
 
-            <!-- EMPTY -->
-            <div id="emptyState" class="empty-state hidden">
+            <!-- EMPTY STATE -->
 
-                <div class="empty-icon">♡</div>
+            <div
+                id="emptyState"
+                class="empty-state hidden"
+            >
 
-                <h3>找不到活動</h3>
+                <div class="empty-icon">
+                    ♡
+                </div>
+
+                <h3>
+                    No Events Found
+                </h3>
 
                 <p>
-                    沒有符合目前搜尋條件的活動。
+                    No events match your current search or filters.
                 </p>
 
-                <button id="emptyClear">
-                    清除篩選
+                <button
+                    id="emptyClear"
+                    type="button"
+                >
+                    Clear Filters
                 </button>
 
             </div>
 
 
             <!-- PAGINATION -->
+
             <div class="pagination">
 
-                <button id="prevPage">
-                    ← 上一頁
+                <button
+                    id="prevPage"
+                    type="button"
+                >
+                    ← Previous
                 </button>
 
                 <span id="pageInfo">
                     1 / 1
                 </span>
 
-                <button id="nextPage">
-                    下一頁 →
+                <button
+                    id="nextPage"
+                    type="button"
+                >
+                    Next →
                 </button>
 
             </div>
@@ -309,30 +358,49 @@
     </section>
 
 
-    <!-- ABOUT -->
-    <section class="about-section" id="about">
+    <!-- =========================
+         ABOUT
+    ========================== -->
+
+    <section
+        class="about-section"
+        id="about"
+    >
 
         <div class="container about-inner">
 
             <div>
-                <span class="eyebrow">ABOUT THIS ARCHIVE</span>
+
+                <span class="eyebrow">
+                    ABOUT THIS ARCHIVE
+                </span>
 
                 <h2>
-                    A small archive<br>
+                    A small archive
+                    <br>
                     for NamtanFilm.
                 </h2>
+
             </div>
+
 
             <div class="about-text">
 
                 <p>
-                    這是一個非官方的 NamtanFilm
-                    活動資料整理網站。
+                    From PLUTO is an unofficial fan-made archive
+                    dedicated to Namtan, Film, and NamtanFilm.
                 </p>
 
                 <p>
-                    透過日期、活動類型及藝人等條件，
-                    更方便地搜尋過往活動紀錄。
+                    The archive brings together public event information
+                    in one place, making it easier to browse and search
+                    past activities by date, artist, and event type.
+                </p>
+
+                <p>
+                    This website is created and maintained by fans
+                    and is not officially affiliated with Namtan,
+                    Film, GMMTV, or their management.
                 </p>
 
             </div>
@@ -344,10 +412,17 @@
 </main>
 
 
-<!-- DETAIL MODAL -->
-<div id="eventModal" class="modal">
+<!-- =========================
+     EVENT MODAL
+========================== -->
+
+<div
+    id="eventModal"
+    class="modal"
+>
 
     <div class="modal-overlay"></div>
+
 
     <div class="modal-content">
 
@@ -355,26 +430,47 @@
             class="modal-close"
             id="modalClose"
             aria-label="Close"
+            type="button"
         >
             ×
         </button>
 
-        <div id="modalImage" class="modal-image">
+
+        <!-- Modal Image -->
+
+        <div
+            id="modalImage"
+            class="modal-image"
+        >
+
             <div class="modal-image-placeholder">
                 NF
             </div>
+
         </div>
+
+
+        <!-- Modal Body -->
 
         <div class="modal-body">
 
             <div class="modal-tags">
 
-                <span id="modalArtist" class="tag"></span>
-                <span id="modalType" class="tag"></span>
+                <span
+                    id="modalArtist"
+                    class="tag"
+                ></span>
+
+                <span
+                    id="modalType"
+                    class="tag"
+                ></span>
 
             </div>
 
+
             <h2 id="modalTitle"></h2>
+
 
             <div class="modal-info">
 
@@ -420,7 +516,7 @@
                 target="_blank"
                 rel="noopener noreferrer"
             >
-                查看相關連結 →
+                View Related Link →
             </a>
 
         </div>
@@ -430,12 +526,16 @@
 </div>
 
 
+<!-- =========================
+     FOOTER
+========================== -->
+
 <footer class="site-footer">
 
     <div class="container footer-inner">
 
         <span>
-            NAMTANFILM ARCHIVE
+            FROM PLUTO ARCHIVE
         </span>
 
         <span>
@@ -451,3 +551,4 @@
 
 </body>
 </html>
+```
