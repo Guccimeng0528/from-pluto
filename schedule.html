@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Event Schedule — From PLUTO</title>
+
+    <meta
+        name="description"
+        content="Browse the complete NamtanFilm event schedule."
+    >
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="site-header">
+
+    <div class="container header-inner">
+
+        <a href="index.html" class="logo">
+            <img src="images/pluto.png" alt="From PLUTO" class="site-logo">
+        </a>
+
+        <nav class="nav">
+            <a href="index.html">Home</a>
+            <a href="profile.html">Profile</a>
+            <a href="schedule.html" class="active">Event Schedule</a>
+            <a href="archive.html">Archive</a>
+        </nav>
+
+    </div>
+
+</header>
+
+
+<main>
+
+    <section class="page-hero">
+
+        <div class="container">
+
+            <span class="eyebrow">
+                EVENT SCHEDULE
+            </span>
+
+            <h1>
+                Event Schedule
+            </h1>
+
+            <p>
+                Search and browse the complete NamtanFilm event archive.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- STATISTICS -->
+
+    <section class="stats-section">
+
+        <div class="container stats-grid">
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    TOTAL EVENTS
+                </span>
+
+                <strong id="totalCount">
+                    0
+                </strong>
+
+                <small>
+                    All recorded events
+                </small>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    LIVE
+                </span>
+
+                <strong id="liveCount">
+                    0
+                </strong>
+
+                <small>
+                    Live streams
+                </small>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    FAN MEETING
+                </span>
+
+                <strong id="fanmeetingCount">
+                    0
+                </strong>
+
+                <small>
+                    Fan meetings
+                </small>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    OTHER EVENTS
+                </span>
+
+                <strong id="eventCount">
+                    0
+                </strong>
+
+                <small>
+                    Other activities
+                </small>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- EVENTS -->
+
+    <section class="events-section">
+
+        <div class="container">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="eyebrow">
+                        DATABASE
+                    </span>
+
+                    <h2>
+                        All Events
+                    </h2>
+
+                </div>
+
+                <div class="result-count">
+
+                    <span id="resultCount">
+                        0
+                    </span>
+
+                    EVENTS
+
+                </div>
+
+            </div>
+
+
+            <!-- FILTERS -->
+
+            <div class="filter-box">
+
+                <div class="search-wrapper">
+
+                    <span class="search-icon">
+                        ⌕
+                    </span>
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search events, locations, artists..."
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="filter-row">
+
+                    <div class="filter-item">
+
+                        <label for="monthFilter">
+                            Month
+                        </label>
+
+                        <select id="monthFilter">
+
+                            <option value="">
+                                All Months
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="filter-item">
+
+                        <label for="dateFilter">
+                            Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="dateFilter"
+                        >
+
+                    </div>
+
+
+                    <div class="filter-item">
+
+                        <label for="artistFilter">
+                            Artist
+                        </label>
+
+                        <select id="artistFilter">
+
+                            <option value="">
+                                All Artists
+                            </option>
+
+                            <option value="Namtan">
+                                Namtan
+                            </option>
+
+                            <option value="Film">
+                                Film
+                            </option>
+
+                            <option value="NamtanFilm">
+                                NamtanFilm
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="filter-item">
+
+                        <label for="typeFilter">
+                            Type
+                        </label>
+
+                        <select id="typeFilter">
+
+                            <option value="">
+                                All Types
+                            </option>
+
+                            <option value="Live">
+                                Live
+                            </option>
+
+                            <option value="Fan Meeting">
+                                Fan Meeting
+                            </option>
+
+                            <option value="Event">
+                                Event
+                            </option>
+
+                            <option value="Concert">
+                                Concert
+                            </option>
+
+                            <option value="Interview">
+                                Interview
+                            </option>
+
+                            <option value="Other">
+                                Other
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <button
+                        id="clearFilters"
+                        class="clear-button"
+                        type="button"
+                    >
+                        Clear Filters
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- GRID -->
+
+            <div
+                id="eventsGrid"
+                class="events-grid"
+            ></div>
+
+
+            <!-- EMPTY -->
+
+            <div
+                id="emptyState"
+                class="empty-state hidden"
+            >
+
+                <div class="empty-icon">
+                    ♡
+                </div>
+
+                <h3>
+                    No Events Found
+                </h3>
+
+                <p>
+                    No events match your current search or filters.
+                </p>
+
+                <button
+                    id="emptyClear"
+                    type="button"
+                >
+                    Clear Filters
+                </button>
+
+            </div>
+
+
+            <!-- PAGINATION -->
+
+            <div class="pagination">
+
+                <button
+                    id="prevPage"
+                    type="button"
+                >
+                    ← Previous
+                </button>
+
+                <span id="pageInfo">
+                    1 / 1
+                </span>
+
+                <button
+                    id="nextPage"
+                    type="button"
+                >
+                    Next →
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- MODAL -->
+
+<div id="eventModal" class="modal">
+
+    <div class="modal-overlay"></div>
+
+    <div class="modal-content">
+
+        <button
+            class="modal-close"
+            id="modalClose"
+            type="button"
+        >
+            ×
+        </button>
+
+
+        <div
+            id="modalImage"
+            class="modal-image"
+        ></div>
+
+
+        <div class="modal-body">
+
+            <div class="modal-tags">
+
+                <span
+                    id="modalArtist"
+                    class="tag"
+                ></span>
+
+                <span
+                    id="modalType"
+                    class="tag"
+                ></span>
+
+            </div>
+
+
+            <h2 id="modalTitle"></h2>
+
+
+            <div class="modal-info">
+
+                <div class="info-row">
+
+                    <span class="info-label">
+                        DATE
+                    </span>
+
+                    <span id="modalDate"></span>
+
+                </div>
+
+
+                <div class="info-row">
+
+                    <span class="info-label">
+                        LOCATION
+                    </span>
+
+                    <span id="modalLocation"></span>
+
+                </div>
+
+
+                <div class="info-row">
+
+                    <span class="info-label">
+                        DESCRIPTION
+                    </span>
+
+                    <span id="modalDescription"></span>
+
+                </div>
+
+            </div>
+
+
+            <a
+                id="modalLink"
+                class="modal-link hidden"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                View Related Link →
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<footer class="site-footer">
+
+    <div class="container footer-inner">
+
+        <span>
+            FROM PLUTO ARCHIVE
+        </span>
+
+        <span>
+            Fan-made archive · 2026
+        </span>
+
+    </div>
+
+</footer>
+
+
+<script src="app.js"></script>
+
+</body>
+</html>

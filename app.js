@@ -1,123 +1,34 @@
 /* =========================================================
-   NAMTANFILM ARCHIVE
-   Vanilla JavaScript
+   FROM PLUTO � NAMTANFILM ARCHIVE
+   Event Archive
    Author: Guccimeng
    ========================================================= */
 
 
+/* =========================================================
+   SAMPLE DATA
+   ?? events.json ???????
+========================================================= */
+
 const SAMPLE_EVENTS = [
     {
-        id: "demo-001",
-        date: "2026-09-15",
-        title: "NamtanFilm Demo Event",
-        artist: "NamtanFilm",
-        type: "Event",
-        location: "Bangkok, Thailand",
-        description: "這是一筆示例資料，之後可以替換成真實活動。",
-        image: "",
-        link: ""
-    },
-
-    {
-        id: "demo-002",
-        date: "2026-09-20",
-        title: "Namtan Live Demo",
-        artist: "Namtan",
-        type: "Live",
-        location: "Online",
-        description: "這是一筆示例直播資料。",
-        image: "",
-        link: ""
-    },
-
-    {
-        id: "demo-003",
-        date: "2026-09-25",
-        title: "Film Event Demo",
-        artist: "Film",
-        type: "Event",
-        location: "Bangkok, Thailand",
-        description: "這是一筆示例活動資料。",
-        image: "",
-        link: ""
-    },
-
-    {
-        id: "demo-004",
-        date: "2026-10-03",
-        title: "NamtanFilm Fan Meeting Demo",
-        artist: "NamtanFilm",
-        type: "Fan Meeting",
-        location: "Bangkok, Thailand",
-        description: "這是一筆示例 Fan Meeting 資料。",
-        image: "",
-        link: ""
-    },
-
-    {
-        id: "demo-005",
-        date: "2026-10-10",
-        title: "NamtanFilm Concert Demo",
-        artist: "NamtanFilm",
-        type: "Concert",
-        location: "Bangkok, Thailand",
-        description: "這是一筆示例 Concert 資料。",
-        image: "",
-        link: ""
-    },
-
-    {
-        id: "demo-006",
-        date: "2026-10-18",
-        title: "Film Interview Demo",
-        artist: "Film",
-        type: "Interview",
-        location: "Online",
-        description: "這是一筆示例 Interview 資料。",
-        image: "",
-        link: ""
-    },
-
-    {
-        id: "demo-007",
-        date: "2026-11-02",
-        title: "Namtan Live Demo 02",
-        artist: "Namtan",
-        type: "Live",
-        location: "Online",
-        description: "示例直播資料。",
-        image: "",
-        link: ""
-    },
-
-    {
-        id: "demo-008",
-        date: "2026-11-15",
-        title: "NamtanFilm Event Demo 02",
-        artist: "NamtanFilm",
-        type: "Event",
-        location: "Bangkok, Thailand",
-        description: "示例活動資料。",
-        image: "",
-        link: ""
-    },
-
-    {
-        id: "demo-009",
-        date: "2026-12-01",
-        title: "NamtanFilm Fan Meeting Demo 02",
-        artist: "NamtanFilm",
-        type: "Fan Meeting",
-        location: "Bangkok, Thailand",
-        description: "示例 Fan Meeting 資料。",
-        image: "",
-        link: ""
+        Name: "PRO-TEEN SCHOOL TOUR 2025",
+        Date: "August 1, 2025",
+        Hashtag: null,
+        KW: null,
+        Location: "Ang Thong Patthamarot Witthayakhom School, Ang Thong",
+        NAMTANFILM: "FILM",
+        Type: "Event",
+        Year: 2025
     }
 ];
 
 
-let events = [];
+/* =========================================================
+   GLOBAL VARIABLES
+========================================================= */
 
+let events = [];
 let filteredEvents = [];
 
 let currentPage = 1;
@@ -126,89 +37,43 @@ const PAGE_SIZE = 9;
 
 
 /* =========================================================
-   DOM
-   ========================================================= */
+   DOM ELEMENTS
+========================================================= */
 
-const eventsGrid =
-    document.getElementById("eventsGrid");
+const eventsGrid = document.getElementById("eventsGrid");
+const emptyState = document.getElementById("emptyState");
 
-const emptyState =
-    document.getElementById("emptyState");
+const searchInput = document.getElementById("searchInput");
+const monthFilter = document.getElementById("monthFilter");
+const dateFilter = document.getElementById("dateFilter");
+const artistFilter = document.getElementById("artistFilter");
+const typeFilter = document.getElementById("typeFilter");
 
-const searchInput =
-    document.getElementById("searchInput");
+const clearFilters = document.getElementById("clearFilters");
+const emptyClear = document.getElementById("emptyClear");
 
-const monthFilter =
-    document.getElementById("monthFilter");
+const prevPage = document.getElementById("prevPage");
+const nextPage = document.getElementById("nextPage");
+const pageInfo = document.getElementById("pageInfo");
 
-const dateFilter =
-    document.getElementById("dateFilter");
+const modal = document.getElementById("eventModal");
+const modalClose = document.getElementById("modalClose");
 
-const artistFilter =
-    document.getElementById("artistFilter");
-
-const typeFilter =
-    document.getElementById("typeFilter");
-
-const clearFilters =
-    document.getElementById("clearFilters");
-
-const emptyClear =
-    document.getElementById("emptyClear");
-
-const prevPage =
-    document.getElementById("prevPage");
-
-const nextPage =
-    document.getElementById("nextPage");
-
-const pageInfo =
-    document.getElementById("pageInfo");
-
-
-/* =========================================================
-   MODAL
-   ========================================================= */
-
-const modal =
-    document.getElementById("eventModal");
-
-const modalClose =
-    document.getElementById("modalClose");
-
-const modalTitle =
-    document.getElementById("modalTitle");
-
-const modalArtist =
-    document.getElementById("modalArtist");
-
-const modalType =
-    document.getElementById("modalType");
-
-const modalDate =
-    document.getElementById("modalDate");
-
-const modalLocation =
-    document.getElementById("modalLocation");
-
-const modalDescription =
-    document.getElementById("modalDescription");
-
-const modalLink =
-    document.getElementById("modalLink");
-
-const modalImage =
-    document.getElementById("modalImage");
+const modalTitle = document.getElementById("modalTitle");
+const modalArtist = document.getElementById("modalArtist");
+const modalType = document.getElementById("modalType");
+const modalDate = document.getElementById("modalDate");
+const modalLocation = document.getElementById("modalLocation");
+const modalDescription = document.getElementById("modalDescription");
+const modalLink = document.getElementById("modalLink");
+const modalImage = document.getElementById("modalImage");
 
 
 /* =========================================================
    INITIALIZE
-   ========================================================= */
+========================================================= */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    init
-);
+document.addEventListener("DOMContentLoaded", init);
 
 
 async function init() {
@@ -227,74 +92,210 @@ async function init() {
 
 
 /* =========================================================
-   LOAD DATA
-   ========================================================= */
+   LOAD EVENTS
+========================================================= */
 
 async function loadEvents() {
 
     try {
 
-        const response =
-            await fetch(
-                "./data/events.json",
-                {
-                    cache: "no-store"
-                }
-            );
-
+        const response = await fetch("./data/events.json", {
+            cache: "no-store"
+        });
 
         if (!response.ok) {
-            throw new Error(
-                "Unable to load events.json"
-            );
+            throw new Error("Unable to load events.json");
         }
 
-
-        const data =
-            await response.json();
-
+        const data = await response.json();
 
         if (!Array.isArray(data)) {
-            throw new Error(
-                "events.json must contain an array"
-            );
+            throw new Error("events.json must contain an array");
         }
 
-
         events = data;
-
 
     } catch (error) {
 
         console.warn(
-            "events.json could not be loaded. Using demo data.",
+            "events.json could not be loaded. Using sample data.",
             error
         );
 
-        events =
-            SAMPLE_EVENTS;
+        events = SAMPLE_EVENTS;
 
     }
 
 
-    events =
-        events
-            .filter(event => event.date)
-            .sort(
-                (a, b) =>
-                    new Date(b.date) -
-                    new Date(a.date)
+    /*
+        ????
+
+        ????????
+        ???????????
+    */
+
+    events = events
+        .filter(event => event.Date)
+        .sort((a, b) => {
+
+            return parseEventDate(b.Date) - parseEventDate(a.Date);
+
+        });
+
+
+    filteredEvents = [...events];
+
+}
+
+
+/* =========================================================
+   DATE PARSER
+========================================================= */
+
+function parseEventDate(dateString) {
+
+    if (!dateString) {
+        return null;
+    }
+
+
+    /*
+        ???
+
+        August 1, 2025
+        January 15, 2026
+
+        ????
+
+        2025-08-01
+    */
+
+    const date = new Date(dateString);
+
+
+    if (Number.isNaN(date.getTime())) {
+
+        /*
+            ???? YYYY-MM-DD
+        */
+
+        const parts = String(dateString).split("-");
+
+        if (parts.length === 3) {
+
+            const year = Number(parts[0]);
+            const month = Number(parts[1]) - 1;
+            const day = Number(parts[2]);
+
+            const fallbackDate = new Date(
+                year,
+                month,
+                day
             );
 
+            if (!Number.isNaN(fallbackDate.getTime())) {
+                return fallbackDate;
+            }
 
-    filteredEvents =
-        [...events];
+        }
+
+        return null;
+    }
+
+
+    return date;
+
+}
+
+
+/* =========================================================
+   NORMALIZED DATE
+   ???? YYYY-MM-DD
+========================================================= */
+
+function getDateKey(dateString) {
+
+    const date = parseEventDate(dateString);
+
+    if (!date) {
+        return "";
+    }
+
+
+    const year = date.getFullYear();
+
+    const month = String(
+        date.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+        date.getDate()
+    ).padStart(2, "0");
+
+
+    return `${year}-${month}-${day}`;
+
+}
+
+
+/* =========================================================
+   GET YEAR
+========================================================= */
+
+function getEventYear(event) {
+
+    /*
+        ???? JSON ??? Year
+    */
+
+    if (event.Year) {
+        return String(event.Year);
+    }
+
+
+    /*
+        ?? Year ????? Date ????
+    */
+
+    const date = parseEventDate(event.Date);
+
+    if (!date) {
+        return "";
+    }
+
+    return String(date.getFullYear());
+
+}
+
+
+/* =========================================================
+   GET MONTH KEY
+========================================================= */
+
+function getMonthKey(event) {
+
+    const date = parseEventDate(event.Date);
+
+    if (!date) {
+        return "";
+    }
+
+
+    const year = date.getFullYear();
+
+    const month = String(
+        date.getMonth() + 1
+    ).padStart(2, "0");
+
+
+    return `${year}-${month}`;
+
 }
 
 
 /* =========================================================
    FILTER SETUP
-   ========================================================= */
+========================================================= */
 
 function setupFilters() {
 
@@ -305,39 +306,40 @@ function setupFilters() {
 
 /* =========================================================
    MONTH FILTER
-   ========================================================= */
+========================================================= */
 
 function populateMonthFilter() {
 
-    const months =
-        [
-            ...new Set(
-                events.map(
-                    event =>
-                        event.date.substring(
-                            0,
-                            7
-                        )
-                )
-            )
-        ]
-        .sort()
-        .reverse();
+    /*
+        ?????? option
+        ?? All Months
+    */
+
+    monthFilter.innerHTML = `
+        <option value="">All Months</option>
+    `;
+
+
+    const months = [
+        ...new Set(
+            events
+                .map(event => getMonthKey(event))
+                .filter(Boolean)
+        )
+    ]
+    .sort()
+    .reverse();
 
 
     months.forEach(month => {
 
-        const option =
-            document.createElement("option");
+        const option = document.createElement("option");
 
         option.value = month;
 
-        option.textContent =
-            formatMonth(month);
+        option.textContent = formatMonth(month);
 
-        monthFilter.appendChild(
-            option
-        );
+        monthFilter.appendChild(option);
 
     });
 
@@ -345,82 +347,109 @@ function populateMonthFilter() {
 
 
 /* =========================================================
-   FILTER EVENTS
-   ========================================================= */
+   APPLY FILTERS
+========================================================= */
 
 function applyFilters() {
 
-    const search =
-        searchInput.value
-            .trim()
-            .toLowerCase();
+    const search = searchInput.value
+        .trim()
+        .toLowerCase();
 
-    const month =
-        monthFilter.value;
+    const month = monthFilter.value;
 
-    const selectedDate =
-        dateFilter.value;
+    const selectedDate = dateFilter.value;
 
-    const artist =
-        artistFilter.value;
+    const artist = artistFilter.value;
 
-    const type =
-        typeFilter.value;
+    const type = typeFilter.value;
 
 
-    filteredEvents =
-        events.filter(event => {
-
-            const searchableText = [
-                event.title,
-                event.artist,
-                event.type,
-                event.location,
-                event.description
-            ]
-                .filter(Boolean)
-                .join(" ")
-                .toLowerCase();
+    filteredEvents = events.filter(event => {
 
 
-            const matchesSearch =
-                !search ||
-                searchableText.includes(
-                    search
-                );
+        /*
+            ????????
+
+            Name
+            Location
+            NAMTANFILM
+            Type
+            Hashtag
+            KW
+            Year
+        */
+
+        const searchableText = [
+
+            event.Name,
+
+            event.Location,
+
+            event.NAMTANFILM,
+
+            event.Type,
+
+            event.Hashtag,
+
+            event.KW,
+
+            event.Year
+
+        ]
+        .filter(value => value !== null && value !== undefined)
+        .join(" ")
+        .toLowerCase();
 
 
-            const matchesMonth =
-                !month ||
-                event.date.startsWith(
-                    month
-                );
+        const matchesSearch =
+            !search ||
+            searchableText.includes(search);
 
 
-            const matchesDate =
-                !selectedDate ||
-                event.date === selectedDate;
+        const matchesMonth =
+            !month ||
+            getMonthKey(event) === month;
 
 
-            const matchesArtist =
-                !artist ||
-                event.artist === artist;
+        const matchesDate =
+            !selectedDate ||
+            getDateKey(event.Date) === selectedDate;
 
 
-            const matchesType =
-                !type ||
-                event.type === type;
+        const matchesArtist =
+            !artist ||
+            event.NAMTANFILM === artist;
 
 
-            return (
-                matchesSearch &&
-                matchesMonth &&
-                matchesDate &&
-                matchesArtist &&
-                matchesType
-            );
+        const matchesType =
+            !type ||
+            event.Type === type;
 
-        });
+
+        return (
+            matchesSearch &&
+            matchesMonth &&
+            matchesDate &&
+            matchesArtist &&
+            matchesType
+        );
+
+    });
+
+
+    /*
+        ????????
+    */
+
+    filteredEvents.sort((a, b) => {
+
+        return (
+            parseEventDate(b.Date) -
+            parseEventDate(a.Date)
+        );
+
+    });
 
 
     currentPage = 1;
@@ -432,27 +461,36 @@ function applyFilters() {
 
 /* =========================================================
    RENDER EVENTS
-   ========================================================= */
+========================================================= */
 
 function renderEvents() {
 
     eventsGrid.innerHTML = "";
 
 
-    const total =
-        filteredEvents.length;
+    const total = filteredEvents.length;
 
 
-    document.getElementById(
+    /*
+        ??????
+    */
+
+    const resultCount = document.getElementById(
         "resultCount"
-    ).textContent = total;
+    );
 
+    if (resultCount) {
+        resultCount.textContent = total;
+    }
+
+
+    /*
+        ????
+    */
 
     if (total === 0) {
 
-        emptyState.classList.remove(
-            "hidden"
-        );
+        emptyState.classList.remove("hidden");
 
         updatePagination();
 
@@ -461,38 +499,36 @@ function renderEvents() {
     }
 
 
-    emptyState.classList.add(
-        "hidden"
-    );
+    emptyState.classList.add("hidden");
 
+
+    /*
+        Pagination
+    */
 
     const start =
-        (currentPage - 1) *
-        PAGE_SIZE;
+        (currentPage - 1) * PAGE_SIZE;
+
 
     const end =
         start + PAGE_SIZE;
 
 
     const pageEvents =
-        filteredEvents.slice(
-            start,
-            end
-        );
+        filteredEvents.slice(start, end);
 
 
-    pageEvents.forEach(
-        event => {
+    /*
+        Render cards
+    */
 
-            const card =
-                createEventCard(event);
+    pageEvents.forEach(event => {
 
-            eventsGrid.appendChild(
-                card
-            );
+        const card = createEventCard(event);
 
-        }
-    );
+        eventsGrid.appendChild(card);
+
+    });
 
 
     updatePagination();
@@ -502,31 +538,46 @@ function renderEvents() {
 
 /* =========================================================
    CREATE EVENT CARD
-   ========================================================= */
+========================================================= */
 
 function createEventCard(event) {
 
-    const card =
-        document.createElement("article");
+    const card = document.createElement("article");
 
-    card.className =
-        "event-card";
+    card.className = "event-card";
 
 
-    const imageHTML =
-        event.image
-            ? `
-                <img
-                    src="${escapeHTML(event.image)}"
-                    alt="${escapeHTML(event.title)}"
-                    loading="lazy"
-                >
-              `
-            : `
-                <div class="event-image-placeholder">
-                    NF
-                </div>
-              `;
+    /*
+        ?? JSON ???? image ???
+
+        ???????
+
+        "Image": "images/event01.jpg"
+
+        ????????
+    */
+
+    const imagePath =
+        event.Image ||
+        event.image ||
+        "";
+
+
+    const imageHTML = imagePath
+
+        ? `
+            <img
+                src="${escapeHTML(imagePath)}"
+                alt="${escapeHTML(event.Name || "Event")}"
+                loading="lazy"
+            >
+        `
+
+        : `
+            <div class="event-image-placeholder">
+                NF
+            </div>
+        `;
 
 
     card.innerHTML = `
@@ -536,7 +587,9 @@ function createEventCard(event) {
             ${imageHTML}
 
             <div class="event-date">
-                ${formatShortDate(event.date)}
+                ${escapeHTML(
+                    formatShortDate(event.Date)
+                )}
             </div>
 
         </div>
@@ -547,23 +600,32 @@ function createEventCard(event) {
             <div class="event-tags">
 
                 <span class="tag">
-                    ${escapeHTML(event.artist || "N/A")}
+                    ${escapeHTML(
+                        event.NAMTANFILM || "N/A"
+                    )}
                 </span>
 
                 <span class="tag">
-                    ${escapeHTML(event.type || "Other")}
+                    ${escapeHTML(
+                        event.Type || "Other"
+                    )}
                 </span>
 
             </div>
 
 
             <h3 class="event-title">
-                ${escapeHTML(event.title || "Untitled Event")}
+                ${escapeHTML(
+                    event.Name || "Untitled Event"
+                )}
             </h3>
 
 
             <div class="event-location">
-                📍 ${escapeHTML(event.location || "—")}
+                ?
+                ${escapeHTML(
+                    event.Location || "�"
+                )}
             </div>
 
 
@@ -571,7 +633,7 @@ function createEventCard(event) {
                 class="event-view"
                 type="button"
             >
-                查看詳細資料 →
+                ?????? ?
             </button>
 
         </div>
@@ -579,12 +641,14 @@ function createEventCard(event) {
     `;
 
 
-    card
-        .querySelector(".event-view")
-        .addEventListener(
-            "click",
-            () => openModal(event)
-        );
+    const viewButton =
+        card.querySelector(".event-view");
+
+
+    viewButton.addEventListener(
+        "click",
+        () => openModal(event)
+    );
 
 
     return card;
@@ -593,73 +657,79 @@ function createEventCard(event) {
 
 
 /* =========================================================
-   STATS
-   ========================================================= */
+   UPDATE STATISTICS
+========================================================= */
 
 function updateStats() {
 
-    const total =
-        events.length;
+    const total = events.length;
 
 
     const live =
         events.filter(
-            event =>
-                event.type === "Live"
+            event => event.Type === "Live"
         ).length;
 
 
     const fanMeetings =
         events.filter(
-            event =>
-                event.type === "Fan Meeting"
+            event => event.Type === "Fan Meeting"
         ).length;
 
 
     const other =
         events.filter(
             event =>
-                event.type !== "Live" &&
-                event.type !== "Fan Meeting"
+                event.Type !== "Live" &&
+                event.Type !== "Fan Meeting"
         ).length;
 
 
-    document.getElementById(
-        "totalCount"
-    ).textContent = total;
+    const totalCount =
+        document.getElementById("totalCount");
+
+    const liveCount =
+        document.getElementById("liveCount");
+
+    const fanmeetingCount =
+        document.getElementById("fanmeetingCount");
+
+    const eventCount =
+        document.getElementById("eventCount");
 
 
-    document.getElementById(
-        "liveCount"
-    ).textContent = live;
+    if (totalCount) {
+        totalCount.textContent = total;
+    }
 
+    if (liveCount) {
+        liveCount.textContent = live;
+    }
 
-    document.getElementById(
-        "fanmeetingCount"
-    ).textContent = fanMeetings;
+    if (fanmeetingCount) {
+        fanmeetingCount.textContent = fanMeetings;
+    }
 
-
-    document.getElementById(
-        "eventCount"
-    ).textContent = other;
+    if (eventCount) {
+        eventCount.textContent = other;
+    }
 
 }
 
 
 /* =========================================================
    PAGINATION
-   ========================================================= */
+========================================================= */
 
 function updatePagination() {
 
-    const totalPages =
-        Math.max(
-            1,
-            Math.ceil(
-                filteredEvents.length /
-                PAGE_SIZE
-            )
-        );
+    const totalPages = Math.max(
+        1,
+        Math.ceil(
+            filteredEvents.length /
+            PAGE_SIZE
+        )
+    );
 
 
     pageInfo.textContent =
@@ -677,16 +747,25 @@ function updatePagination() {
 
 
 /* =========================================================
-   EVENTS
-   ========================================================= */
+   EVENT LISTENERS
+========================================================= */
 
 function setupEvents() {
+
+
+    /*
+        Search
+    */
 
     searchInput.addEventListener(
         "input",
         applyFilters
     );
 
+
+    /*
+        Filters
+    */
 
     monthFilter.addEventListener(
         "change",
@@ -712,6 +791,10 @@ function setupEvents() {
     );
 
 
+    /*
+        Clear filters
+    */
+
     clearFilters.addEventListener(
         "click",
         clearAllFilters
@@ -724,6 +807,10 @@ function setupEvents() {
     );
 
 
+    /*
+        Previous page
+    */
+
     prevPage.addEventListener(
         "click",
         () => {
@@ -734,20 +821,17 @@ function setupEvents() {
 
                 renderEvents();
 
-                window.scrollTo({
-                    top:
-                        document.getElementById(
-                            "events"
-                        ).offsetTop - 90,
-
-                    behavior: "smooth"
-                });
+                scrollToEvents();
 
             }
 
         }
     );
 
+
+    /*
+        Next page
+    */
 
     nextPage.addEventListener(
         "click",
@@ -760,23 +844,13 @@ function setupEvents() {
                 );
 
 
-            if (
-                currentPage <
-                totalPages
-            ) {
+            if (currentPage < totalPages) {
 
                 currentPage++;
 
                 renderEvents();
 
-                window.scrollTo({
-                    top:
-                        document.getElementById(
-                            "events"
-                        ).offsetTop - 90,
-
-                    behavior: "smooth"
-                });
+                scrollToEvents();
 
             }
 
@@ -784,27 +858,39 @@ function setupEvents() {
     );
 
 
+    /*
+        Modal
+    */
+
     modalClose.addEventListener(
         "click",
         closeModal
     );
 
 
-    document
-        .querySelector(".modal-overlay")
-        .addEventListener(
+    const modalOverlay =
+        document.querySelector(".modal-overlay");
+
+
+    if (modalOverlay) {
+
+        modalOverlay.addEventListener(
             "click",
             closeModal
         );
 
+    }
+
+
+    /*
+        ESC
+    */
 
     document.addEventListener(
         "keydown",
         event => {
 
-            if (
-                event.key === "Escape"
-            ) {
+            if (event.key === "Escape") {
 
                 closeModal();
 
@@ -817,8 +903,35 @@ function setupEvents() {
 
 
 /* =========================================================
+   SCROLL TO EVENTS
+========================================================= */
+
+function scrollToEvents() {
+
+    const eventsSection =
+        document.getElementById("events");
+
+
+    if (!eventsSection) {
+        return;
+    }
+
+
+    window.scrollTo({
+
+        top:
+            eventsSection.offsetTop - 90,
+
+        behavior: "smooth"
+
+    });
+
+}
+
+
+/* =========================================================
    CLEAR FILTERS
-   ========================================================= */
+========================================================= */
 
 function clearAllFilters() {
 
@@ -832,49 +945,146 @@ function clearAllFilters() {
 
     typeFilter.value = "";
 
+
     applyFilters();
 
 }
 
 
 /* =========================================================
-   MODAL
-   ========================================================= */
+   OPEN MODAL
+========================================================= */
 
 function openModal(event) {
 
-    modalTitle.textContent =
-        event.title || "Untitled Event";
 
+    /*
+        Title
+    */
+
+    modalTitle.textContent =
+        event.Name ||
+        "Untitled Event";
+
+
+    /*
+        Artist
+    */
 
     modalArtist.textContent =
-        event.artist || "N/A";
+        event.NAMTANFILM ||
+        "N/A";
 
+
+    /*
+        Type
+    */
 
     modalType.textContent =
-        event.type || "Other";
+        event.Type ||
+        "Other";
 
+
+    /*
+        Date
+    */
 
     modalDate.textContent =
-        formatFullDate(event.date);
+        formatFullDate(
+            event.Date
+        );
 
+
+    /*
+        Location
+    */
 
     modalLocation.textContent =
-        event.location || "—";
+        event.Location ||
+        "�";
+
+
+    /*
+        Description
+
+        ???? JSON ?? Description?
+        ??????? Hashtag / KW?
+
+        ????? Description?
+        ???????
+    */
+
+    let description = "";
+
+
+    if (event.Description) {
+
+        description =
+            event.Description;
+
+    } else {
+
+        const extraInfo = [];
+
+
+        if (event.Hashtag) {
+
+            extraInfo.push(
+                `Hashtag: ${event.Hashtag}`
+            );
+
+        }
+
+
+        if (event.KW) {
+
+            extraInfo.push(
+                `Keywords: ${event.KW}`
+            );
+
+        }
+
+
+        description =
+            extraInfo.length > 0
+                ? extraInfo.join(" � ")
+                : "No description available.";
+
+    }
 
 
     modalDescription.textContent =
-        event.description ||
-        "No description available.";
+        description;
 
 
-    if (event.image) {
+    /*
+        Image
+
+        ???
+
+        Image
+        image
+
+        ???????? NF?
+    */
+
+    const imagePath =
+        event.Image ||
+        event.image ||
+        "";
+
+
+    if (imagePath) {
 
         modalImage.innerHTML = `
+
             <img
-                src="${escapeHTML(event.image)}"
-                alt="${escapeHTML(event.title)}"
+                src="${escapeHTML(imagePath)}"
+                alt="${escapeHTML(
+                    event.Name || "Event"
+                )}"
             >
+
         `;
 
     } else {
@@ -888,10 +1098,25 @@ function openModal(event) {
     }
 
 
-    if (event.link) {
+    /*
+        Related Link
+
+        ???
+
+        Link
+        link
+    */
+
+    const eventLink =
+        event.Link ||
+        event.link ||
+        "";
+
+
+    if (eventLink) {
 
         modalLink.href =
-            event.link;
+            eventLink;
 
         modalLink.classList.remove(
             "hidden"
@@ -903,13 +1128,18 @@ function openModal(event) {
             "hidden"
         );
 
+        modalLink.removeAttribute(
+            "href"
+        );
+
     }
 
 
-    modal.classList.add(
-        "active"
-    );
+    /*
+        Open modal
+    */
 
+    modal.classList.add("active");
 
     document.body.style.overflow =
         "hidden";
@@ -917,11 +1147,16 @@ function openModal(event) {
 }
 
 
+/* =========================================================
+   CLOSE MODAL
+========================================================= */
+
 function closeModal() {
 
     modal.classList.remove(
         "active"
     );
+
 
     document.body.style.overflow =
         "";
@@ -930,15 +1165,18 @@ function closeModal() {
 
 
 /* =========================================================
-   DATE FORMAT
-   ========================================================= */
+   FORMAT SHORT DATE
+========================================================= */
 
 function formatShortDate(dateString) {
 
     const date =
-        new Date(
-            dateString + "T00:00:00"
-        );
+        parseEventDate(dateString);
+
+
+    if (!date) {
+        return dateString || "�";
+    }
 
 
     return new Intl.DateTimeFormat(
@@ -953,12 +1191,19 @@ function formatShortDate(dateString) {
 }
 
 
+/* =========================================================
+   FORMAT FULL DATE
+========================================================= */
+
 function formatFullDate(dateString) {
 
     const date =
-        new Date(
-            dateString + "T00:00:00"
-        );
+        parseEventDate(dateString);
+
+
+    if (!date) {
+        return dateString || "�";
+    }
 
 
     return new Intl.DateTimeFormat(
@@ -974,12 +1219,21 @@ function formatFullDate(dateString) {
 }
 
 
+/* =========================================================
+   FORMAT MONTH
+========================================================= */
+
 function formatMonth(monthString) {
 
     const date =
         new Date(
-            monthString + "-01T00:00:00"
+            `${monthString}-01T00:00:00`
         );
+
+
+    if (Number.isNaN(date.getTime())) {
+        return monthString;
+    }
 
 
     return new Intl.DateTimeFormat(
@@ -994,16 +1248,36 @@ function formatMonth(monthString) {
 
 
 /* =========================================================
-   SECURITY
-   ========================================================= */
+   ESCAPE HTML
+========================================================= */
 
 function escapeHTML(value) {
 
     return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 
 }
