@@ -1,4 +1,3 @@
-```javascript
 /* =========================================================
    FROM PLUTO — NAMTANFILM ARCHIVE
    Event Archive + Instagram Feed
@@ -63,9 +62,7 @@ const INSTAGRAM_POST_LIMIT = 20;
 
 let events = [];
 let filteredEvents = [];
-
 let currentPage = 1;
-
 const PAGE_SIZE = 16;
 
 
@@ -3060,4 +3057,3 @@ setInterval(
 /* =========================================================
    END
 ========================================================= */
-```
