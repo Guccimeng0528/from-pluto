@@ -233,14 +233,13 @@ async function init() {
 /* =========================================================
    LOAD EVENTS
 ========================================================= */
-
 async function loadEvents() {
 
     try {
 
         const response =
             await fetch(
-                "./data/events.json",
+                "/schedule",
                 {
                     cache: "no-store"
                 }
@@ -250,7 +249,7 @@ async function loadEvents() {
         if (!response.ok) {
 
             throw new Error(
-                "Unable to load events.json"
+                "Unable to load /schedule"
             );
 
         }
@@ -263,7 +262,7 @@ async function loadEvents() {
         if (!Array.isArray(data)) {
 
             throw new Error(
-                "events.json must contain an array"
+                "/schedule must return an array"
             );
 
         }
@@ -274,7 +273,7 @@ async function loadEvents() {
     } catch (error) {
 
         console.warn(
-            "events.json could not be loaded. Using sample data.",
+            "/schedule could not be loaded. Using sample data.",
             error
         );
 
