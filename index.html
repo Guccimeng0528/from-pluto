@@ -112,7 +112,7 @@
     </section>
 
 
-    <!-- UPCOMING -->
+<!-- UPCOMING -->
 
     <section class="upcoming-section">
 
@@ -139,106 +139,141 @@
 
 </main>
 
-
-<!-- EVENT MODAL -->
-
-<div id="eventModal" class="modal">
-
-    <div class="modal-overlay"></div>
-
-    <div class="modal-content">
-
-        <button
-            class="modal-close"
-            id="modalClose"
-            aria-label="Close"
-            type="button"
-        >
-            ×
-        </button>
-
-
-        <div
-            id="modalImage"
-            class="modal-image"
-        >
-            <div class="modal-image-placeholder">
-                NF
+<!-- INSTAGRAM -->
+<section class="instagram-section">
+    <div class="container">
+         <div class="section-heading">
+            <div>
+                 <span class="eyebrow">INSTAGRAM</span>
+                 <h2>Latest from Instagram</h2>
             </div>
         </div>
-
-
-        <div class="modal-body">
-
-            <div class="modal-tags">
-
-                <span
-                    id="modalArtist"
-                    class="tag"
-                ></span>
-
-                <span
-                    id="modalType"
-                    class="tag"
-                ></span>
+            <!-- NAMTAN -->
+            <div class="instagram-row">
+                <div class="instagram-row-header">
+                    <a
+                        href="https://www.instagram.com/namtan.tipnaree/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="instagram-username"
+                    >
+                        @namtan.tipnaree
+                    </a>
+                    <span class="instagram-arrow">
+                        →
+                    </span>
+                </div>
+                <div
+                    id="instagramNamtan"
+                    class="instagram-scroll"
+                >
+                    <!-- Instagram posts will be loaded here -->
+                </div>
 
             </div>
 
 
+            <!-- FILM -->
+            <div class="instagram-row">
+                <div class="instagram-row-header">
+                    <a
+                        href="https://www.instagram.com/fr.racha/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="instagram-username"
+                    >
+                        @fr.racha
+                    </a>
+                    <span class="instagram-arrow">
+                        →
+                    </span>
+                </div>
+
+                <div
+                    id="instagramFilm"
+                    class="instagram-scroll"
+                >
+                    <!-- Instagram posts will be loaded here -->
+                </div>
+
+            </div>
+
+
+            <!-- LUNAR GMMTV -->
+            <div class="instagram-row">
+                <div class="instagram-row-header">
+                    <a
+                        href="https://www.instagram.com/lunar.gmmtv/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="instagram-username"
+                    >
+                        @lunar.gmmtv
+                    </a>
+                    <span class="instagram-arrow">
+                        →
+                    </span>
+                </div>
+
+                <div
+                    id="instagramLunar"
+                    class="instagram-scroll"
+                >
+                    <!-- Instagram posts will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+<!-- EVENT MODAL -->
+<div id="eventModal" class="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <button class="modal-close" id="modalClose" aria-label="Close" type="button">
+            ×
+        </button>
+        <div id="modalImage" class="modal-image">
+            <div class="modal-image-placeholder">NF</div>
+        </div>
+
+        <div class="modal-body">
+            <div class="modal-tags">
+                <span id="modalArtist" class="tag"></span>
+                <span id="modalType" class="tag"></span>
+            </div>
+
             <h2 id="modalTitle"></h2>
-
-
             <div class="modal-info">
-
                 <div class="info-row">
-
                     <span class="info-label">
                         DATE
                     </span>
-
                     <span id="modalDate"></span>
-
                 </div>
 
 
                 <div class="info-row">
-
                     <span class="info-label">
                         LOCATION
                     </span>
-
                     <span id="modalLocation"></span>
-
                 </div>
 
 
                 <div class="info-row">
-
                     <span class="info-label">
                         DESCRIPTION
                     </span>
-
                     <span id="modalDescription"></span>
-
                 </div>
-
             </div>
 
-
-            <a
-                id="modalLink"
-                class="modal-link hidden"
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
+            <a id="modalLink" class="modal-link hidden" href="#" target="_blank" rel="noopener noreferrer">
                 View Related Link →
             </a>
-
         </div>
-
     </div>
-
 </div>
 
 
