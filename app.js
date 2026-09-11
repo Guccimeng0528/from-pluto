@@ -698,9 +698,9 @@ function applyFilters() {
 
 
                 const matchesArtist =
-                    !artist ||
-                    event.NAMTANFILM ===
-                        artist;
+                   !artist ||
+                   normalizeValue(event.NAMTANFILM) ===
+                   normalizeValue(artist);
 
 
                 const matchesType =
