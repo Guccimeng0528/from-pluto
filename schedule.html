@@ -2,13 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Event Schedule — From PLUTO</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Event Schedule | From PLUTO</title>
 
     <meta
         name="description"
-        content="Browse the complete NamtanFilm event schedule."
+        content="NamtanFilm Event Schedule and Archive"
     >
 
     <link rel="stylesheet" href="style.css">
@@ -16,183 +20,133 @@
 
 <body>
 
-<header class="site-header">
+    <!-- =========================
+         HEADER
+    ========================== -->
+    <header class="site-header">
 
-    <div class="container header-inner">
+        <div class="header-inner">
 
-        <a href="index.html" class="logo">
-            <img src="images/pluto.png" alt="From PLUTO" class="site-logo">
-        </a>
+            <a href="index.html" class="brand">
+                <img
+                    src="images/pluto.png"
+                    alt="From PLUTO"
+                    class="site-logo"
+                >
+            </a>
 
-        <nav class="nav">
-            <a href="index.html">Home</a>
-            <a href="profile.html">Profile</a>
-            <a href="schedule.html" class="active">Event Schedule</a>
-            <a href="archive.html">Archive</a>
-        </nav>
+            <nav class="nav">
 
-    </div>
+                <a href="index.html">
+                    Home
+                </a>
 
-</header>
+                <a href="profile.html">
+                    Profile
+                </a>
 
+                <a
+                    href="schedule.html"
+                    class="active"
+                >
+                    Event Schedule
+                </a>
 
-<main>
+                <a href="events.html">
+                    Archive
+                </a>
 
-    <section class="page-hero">
-
-        <div class="container">
-
-            <span class="eyebrow">
-                EVENT SCHEDULE
-            </span>
-
-            <h1>
-                Event Schedule
-            </h1>
-
-            <p>
-                Search and browse the complete NamtanFilm event archive.
-            </p>
-
-        </div>
-
-    </section>
-
-
-    <!-- STATISTICS -->
-
-    <section class="stats-section">
-
-        <div class="container stats-grid">
-
-            <div class="stat-card">
-
-                <span class="stat-label">
-                    TOTAL EVENTS
-                </span>
-
-                <strong id="totalCount">
-                    0
-                </strong>
-
-                <small>
-                    All recorded events
-                </small>
-
-            </div>
-
-
-            <div class="stat-card">
-
-                <span class="stat-label">
-                    LIVE
-                </span>
-
-                <strong id="liveCount">
-                    0
-                </strong>
-
-                <small>
-                    Live streams
-                </small>
-
-            </div>
-
-
-            <div class="stat-card">
-
-                <span class="stat-label">
-                    FAN MEETING
-                </span>
-
-                <strong id="fanmeetingCount">
-                    0
-                </strong>
-
-                <small>
-                    Fan meetings
-                </small>
-
-            </div>
-
-
-            <div class="stat-card">
-
-                <span class="stat-label">
-                    OTHER EVENTS
-                </span>
-
-                <strong id="eventCount">
-                    0
-                </strong>
-
-                <small>
-                    Other activities
-                </small>
-
-            </div>
+            </nav>
 
         </div>
 
-    </section>
+    </header>
 
 
-    <!-- EVENTS -->
+    <!-- =========================
+         PAGE HEADER
+    ========================== -->
+    <main>
 
-    <section class="events-section">
+        <section class="page-hero">
 
-        <div class="container">
+            <div class="container">
 
-            <div class="section-heading">
+                <span class="eyebrow">
+                    FROM PLUTO
+                </span>
 
-                <div>
+                <h1>
+                    Event Schedule
+                </h1>
 
-                    <span class="eyebrow">
-                        DATABASE
-                    </span>
-
-                    <h2>
-                        All Events
-                    </h2>
-
-                </div>
-
-                <div class="result-count">
-
-                    <span id="resultCount">
-                        0
-                    </span>
-
-                    EVENTS
-
-                </div>
+                <p>
+                    NamtanFilm events, appearances and activities.
+                </p>
 
             </div>
 
+        </section>
 
-            <!-- FILTERS -->
 
-            <div class="filter-box">
+        <!-- =========================
+             EVENT DATABASE
+        ========================== -->
+        <section class="schedule-section">
 
-                <div class="search-wrapper">
+            <div class="container">
 
-                    <span class="search-icon">
-                        ⌕
-                    </span>
+                <div class="section-heading">
 
-                    <input
-                        type="text"
-                        id="searchInput"
-                        placeholder="Search events, locations, artists..."
-                        autocomplete="off"
-                    >
+                    <div>
+                        <span class="section-label">
+                            ARCHIVE
+                        </span>
+
+                        <h2>
+                            All Events
+                        </h2>
+
+                        <p class="section-description">
+                            Browse the complete NamtanFilm event database.
+                        </p>
+                    </div>
+
+                    <div class="event-count-box">
+                        <span id="eventCount">
+                            0
+                        </span>
+
+                        <small>
+                            EVENTS
+                        </small>
+                    </div>
 
                 </div>
 
 
-                <div class="filter-row">
+                <!-- =========================
+                     FILTERS
+                ========================== -->
+                <div class="filters">
 
-                    <div class="filter-item">
+                    <div class="search-box">
+
+                        <label for="searchInput">
+                            Search
+                        </label>
+
+                        <input
+                            type="search"
+                            id="searchInput"
+                            placeholder="Search events..."
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+
+                    <div class="filter-box">
 
                         <label for="monthFilter">
                             Month
@@ -209,7 +163,7 @@
                     </div>
 
 
-                    <div class="filter-item">
+                    <div class="filter-box">
 
                         <label for="dateFilter">
                             Date
@@ -223,7 +177,7 @@
                     </div>
 
 
-                    <div class="filter-item">
+                    <div class="filter-box">
 
                         <label for="artistFilter">
                             Artist
@@ -232,18 +186,18 @@
                         <select id="artistFilter">
 
                             <option value="">
-                                All Artists
+                                All
                             </option>
 
-                            <option value="Namtan">
+                            <option value="NAMTAN">
                                 Namtan
                             </option>
 
-                            <option value="Film">
+                            <option value="FILM">
                                 Film
                             </option>
 
-                            <option value="NamtanFilm">
+                            <option value="NAMTANFILM">
                                 NamtanFilm
                             </option>
 
@@ -252,7 +206,7 @@
                     </div>
 
 
-                    <div class="filter-item">
+                    <div class="filter-box">
 
                         <label for="typeFilter">
                             Type
@@ -294,201 +248,198 @@
 
 
                     <button
+                        type="button"
                         id="clearFilters"
                         class="clear-button"
-                        type="button"
                     >
-                        Clear Filters
+                        Clear
                     </button>
 
                 </div>
 
-            </div>
 
+                <!-- =========================
+                     EVENT GRID
+                ========================== -->
+                <div
+                    id="eventsGrid"
+                    class="events-grid"
+                >
 
-            <!-- GRID -->
+                    <div class="loading-state">
 
-            <div
-                id="eventsGrid"
-                class="events-grid"
-            ></div>
+                        <div class="loading-spinner"></div>
 
+                        <p>
+                            Loading events...
+                        </p>
 
-            <!-- EMPTY -->
+                    </div>
 
-            <div
-                id="emptyState"
-                class="empty-state hidden"
-            >
-
-                <div class="empty-icon">
-                    ♡
                 </div>
 
-                <h3>
-                    No Events Found
-                </h3>
 
-                <p>
-                    No events match your current search or filters.
-                </p>
-
-                <button
-                    id="emptyClear"
-                    type="button"
+                <!-- =========================
+                     EMPTY STATE
+                ========================== -->
+                <div
+                    id="emptyState"
+                    class="empty-state"
+                    hidden
                 >
-                    Clear Filters
-                </button>
+
+                    <div class="empty-icon">
+                        ✦
+                    </div>
+
+                    <h3>
+                        No events found
+                    </h3>
+
+                    <p>
+                        Try changing your search or filters.
+                    </p>
+
+                </div>
+
+
+                <!-- =========================
+                     PAGINATION
+                ========================== -->
+                <div
+                    id="pagination"
+                    class="pagination"
+                ></div>
 
             </div>
 
+        </section>
 
-            <!-- PAGINATION -->
-
-            <div class="pagination">
-
-                <button
-                    id="prevPage"
-                    type="button"
-                >
-                    ← Previous
-                </button>
-
-                <span id="pageInfo">
-                    1 / 1
-                </span>
-
-                <button
-                    id="nextPage"
-                    type="button"
-                >
-                    Next →
-                </button>
-
-            </div>
-
-        </div>
-
-    </section>
-
-</main>
+    </main>
 
 
-<!-- MODAL -->
-
-<div id="eventModal" class="modal">
-
-    <div class="modal-overlay"></div>
-
-    <div class="modal-content">
-
-        <button
-            class="modal-close"
-            id="modalClose"
-            type="button"
-        >
-            ×
-        </button>
-
+    <!-- =========================
+         EVENT MODAL
+    ========================== -->
+    <div
+        id="eventModal"
+        class="modal"
+        hidden
+    >
 
         <div
-            id="modalImage"
-            class="modal-image"
+            class="modal-overlay"
+            id="modalOverlay"
         ></div>
 
+        <div
+            class="modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalTitle"
+        >
 
-        <div class="modal-body">
+            <button
+                type="button"
+                class="modal-close"
+                id="modalClose"
+                aria-label="Close"
+            >
+                ×
+            </button>
 
-            <div class="modal-tags">
 
-                <span
-                    id="modalArtist"
-                    class="tag"
-                ></span>
+            <div class="modal-header">
 
                 <span
                     id="modalType"
-                    class="tag"
-                ></span>
+                    class="modal-type"
+                >
+                    EVENT
+                </span>
+
+                <h2 id="modalTitle">
+                    Event Title
+                </h2>
 
             </div>
 
 
-            <h2 id="modalTitle"></h2>
-
-
-            <div class="modal-info">
-
-                <div class="info-row">
-
-                    <span class="info-label">
-                        DATE
-                    </span>
-
-                    <span id="modalDate"></span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <span class="info-label">
-                        LOCATION
-                    </span>
-
-                    <span id="modalLocation"></span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <span class="info-label">
-                        DESCRIPTION
-                    </span>
-
-                    <span id="modalDescription"></span>
-
-                </div>
-
-            </div>
-
-
-            <a
-                id="modalLink"
-                class="modal-link hidden"
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                View Related Link →
-            </a>
+            <!--
+                app.js will fill this area
+                with ALL fields from events.json.
+            -->
+            <div
+                id="modalBody"
+                class="modal-body"
+            ></div>
 
         </div>
 
     </div>
 
-</div>
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+    <footer class="site-footer">
+
+        <div class="container">
+
+            <div class="footer-inner">
+
+                <div class="footer-brand">
+
+                    <img
+                        src="images/pluto.png"
+                        alt="From PLUTO"
+                        class="footer-logo"
+                    >
+
+                    <p>
+                        A NamtanFilm fan archive.
+                    </p>
+
+                </div>
 
 
-<footer class="site-footer">
+                <div class="footer-links">
 
-    <div class="container footer-inner">
+                    <a href="index.html">
+                        Home
+                    </a>
 
-        <span>
-            FROM PLUTO ARCHIVE
-        </span>
+                    <a href="profile.html">
+                        Profile
+                    </a>
 
-        <span>
-            Fan-made archive · 2026
-        </span>
+                    <a href="schedule.html">
+                        Event Schedule
+                    </a>
 
-    </div>
+                    <a href="events.html">
+                        Archive
+                    </a>
 
-</footer>
+                </div>
+
+            </div>
 
 
-<script src="app.js"></script>
+            <div class="footer-bottom">
+
+                <p>
+                    From PLUTO · NamtanFilm Archive
+                </p>
+
+            </div>
+
+        </div>
+
+    </footer>
+
+
+    <script src="app.js"></script>
 
 </body>
 </html>
