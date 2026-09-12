@@ -457,6 +457,28 @@ function setupFilters() {
         }
     }
 
+   /* -----------------------------------------------------
+       CLEAR FILTERS
+    ----------------------------------------------------- */
+
+    if (clearFilters) {
+
+        clearFilters.addEventListener(
+            "click",
+            clearAllFilters
+        );
+    }
+
+
+    if (emptyClear) {
+
+        emptyClear.addEventListener(
+            "click",
+            clearAllFilters
+        );
+    }
+}
+
 
    /* =========================================================
    APPLY FILTERS
@@ -694,30 +716,6 @@ function applyFilters() {
     ----------------------------------------------------- */
 
     renderEvents();
-}
-
-   
-
-    /* -----------------------------------------------------
-       CLEAR FILTERS
-    ----------------------------------------------------- */
-
-    if (clearFilters) {
-
-        clearFilters.addEventListener(
-            "click",
-            clearAllFilters
-        );
-    }
-
-
-    if (emptyClear) {
-
-        emptyClear.addEventListener(
-            "click",
-            clearAllFilters
-        );
-    }
 }
 
 
