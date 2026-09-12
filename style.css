@@ -995,69 +995,74 @@ a {
 /* =========================================================
    PAGINATION
    ========================================================= */
-
 .pagination {
     display: flex;
-
     align-items: center;
     justify-content: center;
-
-    gap: 16px;
-
+    gap: 8px;
     margin-top: 45px;
 }
 
+/* Page number container */
+.page-numbers {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* All pagination buttons */
 .pagination button {
-    min-width: 110px;
-
-    height: 42px;
-
-    padding:
-        0
-        14px;
-
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
     background: var(--white);
-
     color: var(--text);
-
-    border:
-        1px solid
-        var(--border);
-
+    border: 1px solid var(--border);
     border-radius: 999px;
-
     font-size: 12px;
     font-weight: 700;
-
+    cursor: pointer;
     transition:
         border-color 0.2s ease,
         color 0.2s ease,
         background 0.2s ease;
 }
 
+/* Page number */
+.page-number {
+    flex-shrink: 0;
+}
+
+/* Active page */
+.page-number.active {
+    color: var(--white);
+    background: var(--teal-primary);
+    border-color: var(--teal-primary);
+}
+
+/* Hover */
 .pagination button:hover:not(:disabled) {
     color: var(--teal-primary);
-
     border-color: var(--teal-primary);
-
     background: var(--background-soft);
 }
 
-.pagination button:disabled {
-    opacity: 0.4;
-
-    cursor: not-allowed;
+/* Active hover */
+.pagination .page-number.active:hover {
+    color: var(--white);
+    background: var(--teal-primary);
+    border-color: var(--teal-primary);
 }
 
-#pageInfo {
-    min-width: 60px;
-
-    text-align: center;
-
-    color: var(--text-light);
-
-    font-size: 12px;
-    font-weight: 700;
+/* Disabled */
+.pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 
