@@ -1119,36 +1119,27 @@ function createEventCard(event) {
 
 
     card.innerHTML = `
-
         <div class="event-image">
-
             ${imageHTML}
 
-            <div class="event-date">
-
-                ${escapeHTML(
-                    formatShortDate(
-                        event.Date
-                    )
-                )}
-
-            </div>
 
         </div>
 
+        <div class="event-date">
+            ${escapeHTML(
+               formatShortDate(
+                  event.Date
+               )
+             )}
+         </div>
 
         <div class="event-body">
-
             <div class="event-tags">
-
                 <span class="tag">
-
                     ${escapeHTML(
                         artistDisplay
                     )}
-
                 </span>
-
 
                 <span class="tag">
                     ${escapeHTML(
@@ -1169,7 +1160,6 @@ function createEventCard(event) {
                 View Event
             </button>
         </div>
-
     `;
 
 
@@ -1178,36 +1168,25 @@ function createEventCard(event) {
             ".event-view"
         );
 
-
     if (viewButton) {
 
         viewButton.addEventListener(
             "click",
             () => openModal(event)
         );
-
     }
-
-
     return card;
-
 }
 
 
 /* =========================================================
    UPDATE STATISTICS
 ========================================================= */
-
 function updateStats() {
-
     const total =
         events.length;
 
-
-    /*
-        Artist statistics
-    */
-
+    /* Artist statistics */
     const namtanEvents =
         events.filter(
             event =>
