@@ -243,15 +243,11 @@ a {
 }
 
 .hero-inner {
-    min-height: 500px;
-
+    min-height: 700px;
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
-
     align-items: center;
-
     gap: 50px;
-
     padding-top: 70px;
     padding-bottom: 70px;
 }
