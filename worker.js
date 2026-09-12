@@ -7,30 +7,52 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    // =====================================================
     // Notion Events API
+    // =====================================================
+
     if (url.pathname === "/api/events") {
       return getSchedule(request, env, ctx);
     }
 
-    // Public Schedule page
-    if (url.pathname === "/schedule") {
-      const scheduleUrl = new URL(
-        "/schedule.html",
+
+    // =====================================================
+    // Clean URL Routes
+    // =====================================================
+
+    const routes = {
+      "/": "/index.html",
+      "/profile": "/profile.html",
+      "/schedule": "/schedule.html",
+      "/archive": "/archive.html"
+    };
+
+
+    if (routes[url.pathname]) {
+
+      const assetUrl = new URL(
+        routes[url.pathname],
         request.url
       );
 
       return env.ASSETS.fetch(
-        new Request(scheduleUrl, {
+        new Request(assetUrl, {
           method: request.method,
           headers: request.headers
         })
       );
+
     }
 
+
+    // =====================================================
     // Everything else = normal static files
+    // =====================================================
+
     return env.ASSETS.fetch(request);
   }
 };
+
 
 
 async function getSchedule(request, env, ctx) {
@@ -67,6 +89,7 @@ async function getSchedule(request, env, ctx) {
 
 
   // Try Cloudflare Cache first
+
   const cachedResponse =
     await cache.match(cacheKey);
 
@@ -188,9 +211,6 @@ async function getSchedule(request, env, ctx) {
 
     /*
      * Store in Cloudflare Cache
-     *
-     * waitUntil() means the visitor does
-     * not need to wait for the cache write.
      */
 
     ctx.waitUntil(
@@ -223,9 +243,13 @@ async function getSchedule(request, env, ctx) {
 }
 
 
+
 function convertPageToEvent(page) {
 
-  console.log("NOTION COVER:", JSON.stringify(page.cover));
+  console.log(
+    "NOTION COVER:",
+    JSON.stringify(page.cover)
+  );
 
   const properties =
     page.properties || {};
@@ -280,6 +304,7 @@ function convertPageToEvent(page) {
 }
 
 
+
 function getPropertyValue(property) {
 
   if (!property) {
@@ -325,7 +350,7 @@ function getPropertyValue(property) {
 
     case "multi_select":
 
-    return property.multi_select
+      return property.multi_select
         ?.map(item => item.name) || [];
 
 
@@ -376,6 +401,7 @@ function getPropertyValue(property) {
 }
 
 
+
 function getFormulaValue(formula) {
 
   if (!formula) {
@@ -412,6 +438,7 @@ function getFormulaValue(formula) {
   }
 
 }
+
 
 
 function jsonResponse(
