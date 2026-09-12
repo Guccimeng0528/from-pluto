@@ -148,6 +148,19 @@ const modalTitle =
 const modalDate =
     document.getElementById("modalDate");
 
+
+/* ---------------------------------------------------------
+   ADDED:
+   HASHTAG + KW MODAL ELEMENTS
+--------------------------------------------------------- */
+
+const modalHashtag =
+    document.getElementById("modalHashtag");
+
+const modalKW =
+    document.getElementById("modalKW");
+
+
 const modalLocation =
     document.getElementById("modalLocation");
 
@@ -457,6 +470,31 @@ function setupFilters() {
         }
     }
 
+
+    /* =====================================================
+       CLEAR FILTERS
+    ===================================================== */
+
+    if (clearFilters) {
+
+        clearFilters.addEventListener(
+            "click",
+            clearAllFilters
+        );
+    }
+
+
+    if (emptyClear) {
+
+        emptyClear.addEventListener(
+            "click",
+            clearAllFilters
+        );
+    }
+
+} // <-- CLOSE setupFilters()
+
+
 /* =========================================================
    CLEAR ALL FILTERS
 ========================================================= */
@@ -489,7 +527,7 @@ function clearAllFilters() {
 }
 
 
-   /* =========================================================
+/* =========================================================
    APPLY FILTERS
 ========================================================= */
 
@@ -834,8 +872,7 @@ function renderEvents() {
 
 
     /* -----------------------------------------------------
-       IMPORTANT:
-       NEW PAGINATION FUNCTION
+       PAGINATION
     ----------------------------------------------------- */
 
     renderPagination();
@@ -922,7 +959,7 @@ function createEventCard(event) {
 
     /* -----------------------------------------------------
        CARD HTML
-
+       
        DATE IS BETWEEN IMAGE + BODY
     ----------------------------------------------------- */
 
@@ -1057,6 +1094,13 @@ function renderPagination() {
                 true;
         }
 
+        if (pageInfo) {
+            pageInfo.textContent =
+                totalPages === 0
+                    ? "0 / 0"
+                    : "1 / 1";
+        }
+
         return;
     }
 
@@ -1114,15 +1158,14 @@ function renderPagination() {
 
     /* -----------------------------------------------------
        PAGE NUMBER RANGE
-
+       
        Example:
-
+       
        1 2 3 4 5 6 7 8 9
-
+       
        When current page moves:
-
+       
        2 3 4 5 6 7 8 9 10
-
     ----------------------------------------------------- */
 
     let startPage =
@@ -1224,9 +1267,6 @@ function renderPagination() {
 
     /* -----------------------------------------------------
        PAGE INFO
-
-       Kept for compatibility if
-       schedule.html still contains #pageInfo.
     ----------------------------------------------------- */
 
     if (pageInfo) {
@@ -1966,15 +2006,21 @@ function openModal(event) {
 
         if (event.Link) {
 
-            modalLink.href = event.Link;
+            modalLink.href =
+                event.Link;
 
-            modalLink.classList.remove("hidden");
+            modalLink.classList.remove(
+                "hidden"
+            );
 
         } else {
 
-            modalLink.href = "#";
+            modalLink.href =
+                "#";
 
-            modalLink.classList.add("hidden");
+            modalLink.classList.add(
+                "hidden"
+            );
         }
     }
 
@@ -1983,9 +2029,13 @@ function openModal(event) {
        SHOW MODAL
     ----------------------------------------------------- */
 
-    eventModal.classList.add("active");
+    eventModal.classList.add(
+        "active"
+    );
 
-    document.body.classList.add("modal-open");
+    document.body.classList.add(
+        "modal-open"
+    );
 }
 
 
@@ -1999,9 +2049,13 @@ function closeModal() {
         return;
     }
 
-    eventModal.classList.remove("active");
+    eventModal.classList.remove(
+        "active"
+    );
 
-    document.body.classList.remove("modal-open");
+    document.body.classList.remove(
+        "modal-open"
+    );
 }
 
 
