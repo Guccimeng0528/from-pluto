@@ -1557,6 +1557,13 @@ a {
 
     /* Hero */
 
+   .home-hero {
+      background-image: url("images/home-bg.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+   }
+
     .hero-inner {
         padding-top: 45px;
         padding-bottom: 45px;
