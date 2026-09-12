@@ -825,6 +825,7 @@ a {
 /* Event image */
 .event-image {
     position: relative;
+    z-index: 2;
     aspect-ratio: 16 / 10;
     overflow: hidden;
     background:linear-gradient(135deg,
@@ -869,12 +870,12 @@ a {
     padding: 8px 12px;
     background: #fff;
     border: 1px solid #000;
+    border-radius:8px;
     font-size: 12px;
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;
 }
-
 
 /* Event body */
 .event-body {
