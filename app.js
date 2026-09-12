@@ -1068,9 +1068,7 @@ function createEventCard(event) {
         "event-card";
 
 
-    /*
-        Event image
-    */
+    /*Event image*/
 
     const imagePath =
         event.Image ||
@@ -1079,11 +1077,9 @@ function createEventCard(event) {
 
 
     const imageHTML =
-
         imagePath
 
             ? `
-
                 <img
                     src="${escapeHTML(imagePath)}"
                     alt="${escapeHTML(
@@ -1092,31 +1088,19 @@ function createEventCard(event) {
                     )}"
                     loading="lazy"
                 >
-
             `
-
             : `
-
                 <div
                     class="event-image-placeholder"
                 >
                     NF
                 </div>
-
             `;
 
 
-    /*
-        Type display
-
-        Multi-select array:
-
-        ["Series", "The Invisible Dragon"]
-
-        becomes:
-
-        Series, The Invisible Dragon
-    */
+    /*Type display
+    Multi-select array:["Series", "The Invisible Dragon"]
+    becomes: Series, The Invisible Dragon*/
 
     const typeDisplay =
         Array.isArray(event.Type)
@@ -1124,9 +1108,7 @@ function createEventCard(event) {
             : event.Type || "Other";
 
 
-    /*
-        Artist display
-    */
+    /*Artist display*/
 
     const artistDisplay =
         Array.isArray(
@@ -1169,45 +1151,23 @@ function createEventCard(event) {
 
 
                 <span class="tag">
-
                     ${escapeHTML(
                         typeDisplay
                     )}
-
                 </span>
-
             </div>
 
 
             <h3 class="event-title">
-
                 ${escapeHTML(
                     event.Name ||
                     "Untitled Event"
                 )}
-
             </h3>
 
-
-            <div class="event-location">
-
-                📍
-
-                ${escapeHTML(
-                    event.Location ||
-                    "—"
-                )}
-
-            </div>
-
-
-            <button
-                class="event-view"
-                type="button"
-            >
+            <button class="event-view" type="button">
                 View Event →
             </button>
-
         </div>
 
     `;
