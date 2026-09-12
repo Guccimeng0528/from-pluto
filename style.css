@@ -914,82 +914,55 @@ a {
 
 
 /* Event body */
-
 .event-body {
     padding: 20px;
 }
 
 .event-tags {
     display: flex;
-
     flex-wrap: wrap;
-
     gap: 6px;
-
     margin-bottom: 12px;
 }
 
 .tag {
     display: inline-flex;
-
     align-items: center;
-
-    padding:
-        5px
-        9px;
-
+    padding: 1px 4px;
     background: var(--background-soft);
-
     color: var(--teal-primary);
-
-    border:
-        1px solid
-        rgba(5, 168, 176, 0.18);
-
-    border-radius: 999px;
-
-    font-size: 10px;
-    font-weight: 800;
+    border: 1px solid rgba(5, 168, 176, 0.18);
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 700;
 }
 
 .event-title {
     margin-bottom: 10px;
-
-    font-size: 19px;
-
+    font-size: 15px;
     line-height: 1.25;
-
     letter-spacing: -0.3px;
 }
 
 .event-location {
     margin-bottom: 18px;
-
     color: var(--text-light);
-
     font-size: 12px;
 }
 
 .event-view {
-    padding: 0;
-
-    background: none;
-
-    border: none;
-
+    padding: 2px;
+    background: #fee050;
+    border: 1px solid rgba(5, 168, 176, 0.18);
+    border-radius: 6px;
     color: var(--teal-primary);
-
-    font-size: 12px;
-    font-weight: 900;
-
-    transition:
-        color 0.2s ease,
-        transform 0.2s ease;
+    font-size: 15px;
+    font-weight: 800;
+    transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .event-view:hover {
     color: var(--black);
-
     transform: translateX(3px);
 }
 
@@ -997,18 +970,11 @@ a {
 /* =========================================================
    EMPTY STATE
    ========================================================= */
-
 .empty-state {
     padding: 80px 20px;
-
     text-align: center;
-
     background: var(--white);
-
-    border:
-        1px dashed
-        var(--border);
-
+    border: 1px dashed var(--border);
     border-radius: var(--radius-lg);
 }
 
