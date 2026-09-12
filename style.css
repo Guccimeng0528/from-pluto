@@ -106,7 +106,6 @@ a {
 /* =========================================================
    HEADER
    ========================================================= */
-
 .site-header {
     position: sticky;
     top: 0;
@@ -117,15 +116,21 @@ a {
     border-bottom: 1px solid var(--border);
 }
 
+/* =========================================================
+   HOME HEADER
+   Header overlays the Hero
+   ========================================================= */
+
 .home-page .site-header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(255, 255, 255, 0.45);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+    margin-bottom: -82px;
 }
 
+
+/* Header inner */
 .header-inner {
     min-height: 82px;
     display: flex;
