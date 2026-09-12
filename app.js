@@ -316,6 +316,90 @@ function setupFilters() {
     );
 
 
+    /* -----------------------------------------------------
+       MONTH OPTIONS
+    ----------------------------------------------------- */
+
+    if (monthFilter) {
+
+        const months = [
+            ...new Set(
+                events
+                    .map(event => {
+                        const date =
+                            parseEventDate(
+                                event.Date
+                            );
+
+                        return date
+                            ? String(
+                                date.getMonth() + 1
+                            ).padStart(2, "0")
+                            : null;
+                    })
+                    .filter(Boolean)
+            )
+        ].sort();
+
+        monthFilter.innerHTML = `
+            <option value="">All Months</option>
+            ${months.map(month => `
+                <option value="${month}">
+                    ${month}
+                </option>
+            `).join("")}
+        `;
+    }
+
+
+    /* -----------------------------------------------------
+       TYPE OPTIONS
+    ----------------------------------------------------- */
+
+    if (typeFilter) {
+
+        const types = [
+            ...new Set(
+                events
+                    .flatMap(event => {
+
+                        if (
+                            Array.isArray(
+                                event.Type
+                            )
+                        ) {
+                            return event.Type;
+                        }
+
+                        return event.Type
+                            ? [event.Type]
+                            : [];
+                    })
+                    .map(type =>
+                        String(type).trim()
+                    )
+                    .filter(Boolean)
+            )
+        ].sort(
+            (a, b) =>
+                a.localeCompare(b)
+        );
+
+        typeFilter.innerHTML = `
+            <option value="">All Types</option>
+            ${types.map(type => `
+                <option value="${escapeHTML(type)}">
+                    ${escapeHTML(type)}
+                </option>
+            `).join("")}
+        `;
+    }
+
+
+    /* -----------------------------------------------------
+       FILTER BUTTONS
+    ----------------------------------------------------- */
+
     if (clearFilters) {
 
         clearFilters.addEventListener(
@@ -544,13 +628,26 @@ function applyFilters() {
 
 
     /* -----------------------------------------------------
-       RESET TO FIRST PAGE
-    ----------------------------------------------------- */
+   RESET TO FIRST PAGE
+----------------------------------------------------- */
 
-    currentPage = 1;
+currentPage = 1;
 
-    renderEvents();
+
+/* -----------------------------------------------------
+   RESULT COUNT
+----------------------------------------------------- */
+
+const resultCount =
+    document.getElementById("result-count");
+
+if (resultCount) {
+    resultCount.textContent =
+        filteredEvents.length;
 }
+
+
+renderEvents();
 
 
 /* =========================================================
