@@ -1306,42 +1306,46 @@ function updateStats() {
             "totalEvents"
         );
 
-
     if (totalEvents) {
-
         totalEvents.textContent =
             events.length;
     }
 
 
     /* -----------------------------------------------------
-       YEARS
+       TOTAL YEARS
     ----------------------------------------------------- */
 
     const years =
         new Set();
 
-
     events.forEach(
         event => {
 
-            if (event.Year) {
+            /* Use Year from Notion first */
+
+            if (
+                event.Year !== null &&
+                event.Year !== undefined &&
+                String(event.Year).trim() !== ""
+            ) {
 
                 years.add(
                     String(
                         event.Year
-                    )
+                    ).trim()
                 );
 
                 return;
             }
 
 
+            /* Fallback to event date */
+
             const date =
                 parseEventDate(
                     event.Date
                 );
-
 
             if (date) {
 
@@ -1360,7 +1364,6 @@ function updateStats() {
             "totalYears"
         );
 
-
     if (totalYears) {
 
         totalYears.textContent =
@@ -1369,7 +1372,7 @@ function updateStats() {
 
 
     /* -----------------------------------------------------
-       NAMTANFILM EVENTS
+       NAMTANFILM
     ----------------------------------------------------- */
 
     const totalNamtanFilm =
@@ -1377,14 +1380,13 @@ function updateStats() {
             "totalNamtanFilm"
         );
 
-
     if (totalNamtanFilm) {
 
         const count =
             events.filter(
                 event => {
 
-                    const value =
+                    const artists =
                         Array.isArray(
                             event.NAMTANFILM
                         )
@@ -1393,30 +1395,176 @@ function updateStats() {
                                 event.NAMTANFILM
                             ];
 
-                    return value.some(
-                        item =>
-                            String(
-                                item ||
-                                ""
-                            )
-                                .toLowerCase()
-                                .includes(
-                                    "namtan"
-                                ) ||
-                            String(
-                                item ||
-                                ""
-                            )
-                                .toLowerCase()
-                                .includes(
-                                    "film"
+
+                    return artists.some(
+                        artist => {
+
+                            if (
+                                artist === null ||
+                                artist === undefined
+                            ) {
+                                return false;
+                            }
+
+
+                            const value =
+                                String(
+                                    artist
                                 )
+                                    .trim()
+                                    .toLowerCase();
+
+
+                            return (
+                                value ===
+                                    "namtan" ||
+                                value ===
+                                    "film" ||
+                                value ===
+                                    "namtanfilm"
+                            );
+                        }
                     );
                 }
             ).length;
 
 
         totalNamtanFilm.textContent =
+            count;
+    }
+
+
+    /* -----------------------------------------------------
+       OPTIONAL STATS
+       
+       These will automatically work if your
+       stats-section contains these IDs.
+    ----------------------------------------------------- */
+
+    const totalLocations =
+        document.getElementById(
+            "totalLocations"
+        );
+
+    if (totalLocations) {
+
+        const locations =
+            new Set();
+
+        events.forEach(
+            event => {
+
+                if (
+                    event.Location !== null &&
+                    event.Location !== undefined &&
+                    String(
+                        event.Location
+                    ).trim() !== ""
+                ) {
+
+                    locations.add(
+                        String(
+                            event.Location
+                        ).trim()
+                    );
+                }
+            }
+        );
+
+        totalLocations.textContent =
+            locations.size;
+    }
+
+
+    /* -----------------------------------------------------
+       TOTAL TYPES
+    ----------------------------------------------------- */
+
+    const totalTypes =
+        document.getElementById(
+            "totalTypes"
+        );
+
+    if (totalTypes) {
+
+        const types =
+            new Set();
+
+        events.forEach(
+            event => {
+
+                const values =
+                    Array.isArray(
+                        event.Type
+                    )
+                        ? event.Type
+                        : [
+                            event.Type
+                        ];
+
+                values.forEach(
+                    value => {
+
+                        if (
+                            value !== null &&
+                            value !== undefined &&
+                            String(
+                                value
+                            ).trim() !== ""
+                        ) {
+
+                            types.add(
+                                String(
+                                    value
+                                ).trim()
+                            );
+                        }
+                    }
+                );
+            }
+        );
+
+        totalTypes.textContent =
+            types.size;
+    }
+
+
+    /* -----------------------------------------------------
+       CURRENT YEAR EVENTS
+    ----------------------------------------------------- */
+
+    const currentYearEvents =
+        document.getElementById(
+            "currentYearEvents"
+        );
+
+    if (currentYearEvents) {
+
+        const currentYear =
+            new Date()
+                .getFullYear();
+
+
+        const count =
+            events.filter(
+                event => {
+
+                    const date =
+                        parseEventDate(
+                            event.Date
+                        );
+
+
+                    return (
+                        date &&
+                        date.getFullYear() ===
+                            currentYear
+                    );
+                }
+            ).length;
+
+
+        currentYearEvents.textContent =
             count;
     }
 }
