@@ -863,16 +863,16 @@ a {
 /* Date */
 .event-date {
     position: absolute;
-    right: 0;
-    bottom: 0;
+    right: 0px;
+    top: 128px;
     transform: translateY(50%);
     z-index: 10;
-    padding: 8px 12px;
-    background: #fff;
+    padding: 4px 6px;
+    background: #f9d72f;
     border: 1px solid #000;
-    border-radius:8px;
+    border-radius: 4px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 800;
     line-height: 1;
     white-space: nowrap;
 }
