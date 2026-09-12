@@ -1655,104 +1655,111 @@ function setupEvents() {
     }
 
 
-    /*
-        Previous page
-    */
-
+    /* Previous page */
     if (prevPage) {
-
         prevPage.addEventListener(
             "click",
             () => {
-
                 if (
                     currentPage > 1
                 ) {
-
                     currentPage--;
-
                     renderEvents();
-
                     scrollToEvents();
-
                 }
-
             }
         );
-
     }
 
 
-    /*
-        Next page
-    */
-
+    /* Next page */
     if (nextPage) {
-
         nextPage.addEventListener(
             "click",
             () => {
-
                 const totalPages =
                     Math.ceil(
                         filteredEvents.length /
                         PAGE_SIZE
                     );
-
-
                 if (
                     currentPage <
                     totalPages
                 ) {
-
                     currentPage++;
-
                     renderEvents();
-
                     scrollToEvents();
-
                 }
-
             }
         );
+     }
 
-    }
+   if (firstPage) {
+    firstPage.addEventListener(
+        "click",
+        () => {
+
+            currentPage = 1;
+
+            renderEvents();
+            renderPagination();
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+    );
+}
+
+if (lastPage) {
+    lastPage.addEventListener(
+        "click",
+        () => {
+
+            const totalPages =
+                Math.ceil(
+                    filteredEvents.length /
+                    PAGE_SIZE
+                );
+
+            currentPage =
+                totalPages;
+
+            renderEvents();
+            renderPagination();
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+    );
+}
 
 
-    /*
-        Modal
-    */
-
+    /* Modal */
     if (modalClose) {
-
         modalClose.addEventListener(
             "click",
             closeModal
         );
-
     }
-
 
     const modalOverlay =
         document.querySelector(
             ".modal-overlay"
         );
 
-
     if (modalOverlay) {
-
         modalOverlay.addEventListener(
             "click",
             closeModal
         );
-
     }
 
 
-    /*
-        ESC
-    */
-
+    /* ESC */
     document.addEventListener(
         "keydown",
         event => {
