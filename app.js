@@ -1301,271 +1301,189 @@ function updateStats() {
        TOTAL EVENTS
     ----------------------------------------------------- */
 
-    const totalEvents =
-        document.getElementById(
-            "totalEvents"
-        );
+    const totalCount =
+        document.getElementById("totalCount");
 
-    if (totalEvents) {
-        totalEvents.textContent =
-            events.length;
+    if (totalCount) {
+        totalCount.textContent = events.length;
     }
 
 
     /* -----------------------------------------------------
-       TOTAL YEARS
+       NAMTAN EVENTS
     ----------------------------------------------------- */
 
-    const years =
-        new Set();
+    const namtanCount =
+        document.getElementById("namtanCount");
 
-    events.forEach(
-        event => {
-
-            /* Use Year from Notion first */
-
-            if (
-                event.Year !== null &&
-                event.Year !== undefined &&
-                String(event.Year).trim() !== ""
-            ) {
-
-                years.add(
-                    String(
-                        event.Year
-                    ).trim()
-                );
-
-                return;
-            }
-
-
-            /* Fallback to event date */
-
-            const date =
-                parseEventDate(
-                    event.Date
-                );
-
-            if (date) {
-
-                years.add(
-                    String(
-                        date.getFullYear()
-                    )
-                );
-            }
-        }
-    );
-
-
-    const totalYears =
-        document.getElementById(
-            "totalYears"
-        );
-
-    if (totalYears) {
-
-        totalYears.textContent =
-            years.size;
-    }
-
-
-    /* -----------------------------------------------------
-       NAMTANFILM
-    ----------------------------------------------------- */
-
-    const totalNamtanFilm =
-        document.getElementById(
-            "totalNamtanFilm"
-        );
-
-    if (totalNamtanFilm) {
+    if (namtanCount) {
 
         const count =
-            events.filter(
-                event => {
+            events.filter(event => {
 
-                    const artists =
-                        Array.isArray(
-                            event.NAMTANFILM
-                        )
-                            ? event.NAMTANFILM
-                            : [
-                                event.NAMTANFILM
-                            ];
+                const value =
+                    Array.isArray(event.NAMTANFILM)
+                        ? event.NAMTANFILM
+                        : [event.NAMTANFILM];
 
-
-                    return artists.some(
-                        artist => {
-
-                            if (
-                                artist === null ||
-                                artist === undefined
-                            ) {
-                                return false;
-                            }
-
-
-                            const value =
-                                String(
-                                    artist
-                                )
-                                    .trim()
-                                    .toLowerCase();
-
-
-                            return (
-                                value ===
-                                    "namtan" ||
-                                value ===
-                                    "film" ||
-                                value ===
-                                    "namtanfilm"
-                            );
-                        }
-                    );
-                }
-            ).length;
-
-
-        totalNamtanFilm.textContent =
-            count;
-    }
-
-
-    /* -----------------------------------------------------
-       OPTIONAL STATS
-       
-       These will automatically work if your
-       stats-section contains these IDs.
-    ----------------------------------------------------- */
-
-    const totalLocations =
-        document.getElementById(
-            "totalLocations"
-        );
-
-    if (totalLocations) {
-
-        const locations =
-            new Set();
-
-        events.forEach(
-            event => {
-
-                if (
-                    event.Location !== null &&
-                    event.Location !== undefined &&
-                    String(
-                        event.Location
-                    ).trim() !== ""
-                ) {
-
-                    locations.add(
-                        String(
-                            event.Location
-                        ).trim()
-                    );
-                }
-            }
-        );
-
-        totalLocations.textContent =
-            locations.size;
-    }
-
-
-    /* -----------------------------------------------------
-       TOTAL TYPES
-    ----------------------------------------------------- */
-
-    const totalTypes =
-        document.getElementById(
-            "totalTypes"
-        );
-
-    if (totalTypes) {
-
-        const types =
-            new Set();
-
-        events.forEach(
-            event => {
-
-                const values =
-                    Array.isArray(
-                        event.Type
-                    )
-                        ? event.Type
-                        : [
-                            event.Type
-                        ];
-
-                values.forEach(
-                    value => {
-
-                        if (
-                            value !== null &&
-                            value !== undefined &&
-                            String(
-                                value
-                            ).trim() !== ""
-                        ) {
-
-                            types.add(
-                                String(
-                                    value
-                                ).trim()
-                            );
-                        }
-                    }
+                return value.some(item =>
+                    String(item || "")
+                        .toLowerCase()
+                        .includes("namtan")
                 );
-            }
-        );
+            }).length;
 
-        totalTypes.textContent =
-            types.size;
+        namtanCount.textContent = count;
     }
 
 
     /* -----------------------------------------------------
-       CURRENT YEAR EVENTS
+       FILM EVENTS
     ----------------------------------------------------- */
 
-    const currentYearEvents =
-        document.getElementById(
-            "currentYearEvents"
-        );
+    const filmCount =
+        document.getElementById("filmCount");
 
-    if (currentYearEvents) {
-
-        const currentYear =
-            new Date()
-                .getFullYear();
-
+    if (filmCount) {
 
         const count =
-            events.filter(
-                event => {
+            events.filter(event => {
 
-                    const date =
-                        parseEventDate(
-                            event.Date
-                        );
+                const value =
+                    Array.isArray(event.NAMTANFILM)
+                        ? event.NAMTANFILM
+                        : [event.NAMTANFILM];
+
+                return value.some(item =>
+                    String(item || "")
+                        .toLowerCase()
+                        .includes("film")
+                );
+            }).length;
+
+        filmCount.textContent = count;
+    }
 
 
-                    return (
-                        date &&
-                        date.getFullYear() ===
-                            currentYear
-                    );
-                }
+    /* -----------------------------------------------------
+       NAMTANFILM EVENTS
+    ----------------------------------------------------- */
+
+    const namtanfilmCount =
+        document.getElementById("namtanfilmCount");
+
+    if (namtanfilmCount) {
+
+        const count =
+            events.filter(event => {
+
+                const value =
+                    Array.isArray(event.NAMTANFILM)
+                        ? event.NAMTANFILM
+                        : [event.NAMTANFILM];
+
+                const text =
+                    value
+                        .map(item => String(item || ""))
+                        .join(" ")
+                        .toLowerCase();
+
+                return (
+                    text.includes("namtan") &&
+                    text.includes("film")
+                );
+            }).length;
+
+        namtanfilmCount.textContent = count;
+    }
+
+
+    /* -----------------------------------------------------
+       SERIES
+    ----------------------------------------------------- */
+
+    const seriesCount =
+        document.getElementById("seriesCount");
+
+    if (seriesCount) {
+
+        const count =
+            events.filter(event =>
+                String(event.Type || "")
+                    .toLowerCase()
+                    .includes("series")
             ).length;
 
+        seriesCount.textContent = count;
+    }
 
-        currentYearEvents.textContent =
-            count;
+
+    /* -----------------------------------------------------
+       FANMEETING
+    ----------------------------------------------------- */
+
+    const fanmeetingCount =
+        document.getElementById("fanmeetingCount");
+
+    if (fanmeetingCount) {
+
+        const count =
+            events.filter(event =>
+                String(event.Type || "")
+                    .toLowerCase()
+                    .includes("fanmeeting")
+            ).length;
+
+        fanmeetingCount.textContent = count;
+    }
+
+
+    /* -----------------------------------------------------
+       CONCERT
+    ----------------------------------------------------- */
+
+    const concertCount =
+        document.getElementById("concertCount");
+
+    if (concertCount) {
+
+        const count =
+            events.filter(event =>
+                String(event.Type || "")
+                    .toLowerCase()
+                    .includes("concert")
+            ).length;
+
+        concertCount.textContent = count;
+    }
+
+
+    /* -----------------------------------------------------
+       OTHER EVENTS
+    ----------------------------------------------------- */
+
+    const otherEventsCount =
+        document.getElementById("otherEventsCount");
+
+    if (otherEventsCount) {
+
+        const count =
+            events.filter(event => {
+
+                const type =
+                    String(event.Type || "")
+                        .toLowerCase()
+                        .trim();
+
+                return (
+                    type !== "" &&
+                    !type.includes("series") &&
+                    !type.includes("fanmeeting") &&
+                    !type.includes("concert")
+                );
+            }).length;
+
+        otherEventsCount.textContent = count;
     }
 }
 
