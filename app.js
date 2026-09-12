@@ -316,26 +316,149 @@ function setupFilters() {
     );
 
 
-    if (clearFilters) {
+    /* -----------------------------------------------------
+       MONTH FILTER OPTIONS
+    ----------------------------------------------------- */
 
-        clearFilters.addEventListener(
-            "click",
-            clearAllFilters
+    if (monthFilter) {
+
+        const currentValue =
+            monthFilter.value;
+
+        const months = [
+            ...new Set(
+                events
+                    .map(event => {
+
+                        const date =
+                            parseEventDate(
+                                event.Date
+                            );
+
+                        if (!date) {
+                            return null;
+                        }
+
+                        return String(
+                            date.getMonth() + 1
+                        ).padStart(2, "0");
+                    })
+                    .filter(Boolean)
+            )
+        ].sort(
+            (a, b) =>
+                Number(a) -
+                Number(b)
         );
+
+
+        monthFilter.innerHTML = `
+            <option value="">
+                All Months
+            </option>
+
+            ${months.map(month => {
+
+                const monthName =
+                    new Intl.DateTimeFormat(
+                        "en-US",
+                        {
+                            month: "long"
+                        }
+                    ).format(
+                        new Date(
+                            2000,
+                            Number(month) - 1,
+                            1
+                        )
+                    );
+
+                return `
+                    <option value="${month}">
+                        ${monthName}
+                    </option>
+                `;
+
+            }).join("")}
+        `;
+
+
+        if (
+            months.includes(
+                currentValue
+            )
+        ) {
+            monthFilter.value =
+                currentValue;
+        }
     }
 
 
-    if (emptyClear) {
+    /* -----------------------------------------------------
+       TYPE FILTER OPTIONS
+    ----------------------------------------------------- */
 
-        emptyClear.addEventListener(
-            "click",
-            clearAllFilters
+    if (typeFilter) {
+
+        const currentValue =
+            typeFilter.value;
+
+        const types = [
+            ...new Set(
+                events
+                    .flatMap(event => {
+
+                        if (
+                            Array.isArray(
+                                event.Type
+                            )
+                        ) {
+                            return event.Type;
+                        }
+
+                        return event.Type
+                            ? [event.Type]
+                            : [];
+                    })
+                    .map(
+                        value =>
+                            String(
+                                value
+                            ).trim()
+                    )
+                    .filter(Boolean)
+            )
+        ].sort(
+            (a, b) =>
+                a.localeCompare(b)
         );
+
+
+        typeFilter.innerHTML = `
+            <option value="">
+                All Types
+            </option>
+
+            ${types.map(type => `
+                <option value="${escapeHTML(type)}">
+                    ${escapeHTML(type)}
+                </option>
+            `).join("")}
+        `;
+
+
+        if (
+            types.includes(
+                currentValue
+            )
+        ) {
+            typeFilter.value =
+                currentValue;
+        }
     }
-}
 
 
-/* =========================================================
+   /* =========================================================
    APPLY FILTERS
 ========================================================= */
 
@@ -544,57 +667,57 @@ function applyFilters() {
 
 
     /* -----------------------------------------------------
-   RESET TO FIRST PAGE
------------------------------------------------------ */
-
-currentPage = 1;
-
-
-/* -----------------------------------------------------
-   RESULT COUNT
------------------------------------------------------ */
-
-const resultCount =
-    document.getElementById("result-count");
-
-if (resultCount) {
-    resultCount.textContent =
-        filteredEvents.length;
-}
-
-
-renderEvents();
-}
-
-/* =========================================================
-   CLEAR FILTERS
-========================================================= */
-
-function clearAllFilters() {
-
-    if (searchInput) {
-        searchInput.value = "";
-    }
-
-    if (monthFilter) {
-        monthFilter.value = "";
-    }
-
-    if (dateFilter) {
-        dateFilter.value = "";
-    }
-
-    if (artistFilter) {
-        artistFilter.value = "";
-    }
-
-    if (typeFilter) {
-        typeFilter.value = "";
-    }
+       RESET TO FIRST PAGE
+    ----------------------------------------------------- */
 
     currentPage = 1;
 
-    applyFilters();
+
+    /* -----------------------------------------------------
+       RESULT COUNT
+    ----------------------------------------------------- */
+
+    const resultCount =
+        document.getElementById("result-count") ||
+        document.getElementById("resultCount") ||
+        document.querySelector(".result-count");
+
+    if (resultCount) {
+
+        resultCount.textContent =
+            filteredEvents.length;
+    }
+
+
+    /* -----------------------------------------------------
+       RENDER
+    ----------------------------------------------------- */
+
+    renderEvents();
+}
+
+   
+
+    /* -----------------------------------------------------
+       CLEAR FILTERS
+    ----------------------------------------------------- */
+
+    if (clearFilters) {
+
+        clearFilters.addEventListener(
+            "click",
+            clearAllFilters
+        );
+    }
+
+
+    if (emptyClear) {
+
+        emptyClear.addEventListener(
+            "click",
+            clearAllFilters
+        );
+    }
 }
 
 
