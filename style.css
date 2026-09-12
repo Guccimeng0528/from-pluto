@@ -1442,24 +1442,13 @@ a {
    SCROLLBAR
    ========================================================= */
 
-::-webkit-scrollbar {
-    width: 9px;
+html {
+    scrollbar-width: none;
 }
 
-::-webkit-scrollbar-track {
-    background: var(--background);
+html::-webkit-scrollbar {
+    display: none;
 }
-
-::-webkit-scrollbar-thumb {
-    background: var(--teal-secondary);
-
-    border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--teal-primary);
-}
-
 
 /* =========================================================
    RESPONSIVE — TABLET
