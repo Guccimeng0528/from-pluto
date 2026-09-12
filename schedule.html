@@ -262,10 +262,12 @@
 
 
             <!-- PAGINATION -->
-            <div class="pagination">
-                <button id="prevPage" type="button">← Previous</button>
-                <span id="pageInfo">1 / 1</span>
-                <button id="nextPage" type="button">Next →</button>
+            <div class="pagination" id="pagination">
+                <button type="button" class="page-btn page-first" id="firstPage">&lt;&lt;</button>
+                <button type="button" class="page-btn page-prev" id="prevPage">&lt;</button>
+                <div class="page-numbers" id="pageNumbers"></div>
+                <button type="button" class="page-btn page-next" id="nextPage">&gt;</button>
+                <button type="button" class="page-btn page-last" id="lastPage">&gt;&gt;</button>
             </div>
 
         </div>
