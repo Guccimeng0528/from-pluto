@@ -221,13 +221,16 @@ a {
    ========================================================= */
 
 .hero {
-   background-image: url("images/home-bg.jpg");
-   background-size: cover;
-   background-position: center;
-   background-repeat: no-repeat;
-   position: relative;
-   overflow: hidden;
-   border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+}
+
+.home-hero {
+    background-image: url("images/home-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .hero-inner {
