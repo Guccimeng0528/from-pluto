@@ -211,19 +211,13 @@ a {
    ========================================================= */
 
 .hero {
-    position: relative;
-
-    overflow: hidden;
-
-    background:
-        linear-gradient(
-            135deg,
-            #e9fbfc 0%,
-            #ffffff 55%,
-            #fff9d9 100%
-        );
-
-    border-bottom: 1px solid var(--border);
+   background-image: url("images/home-bg.jpg");
+   background-size: cover;
+   background-position: center;
+   background-repeat: no-repeat;
+   position: relative;
+   overflow: hidden;
+   border-bottom: 1px solid var(--border);
 }
 
 .hero-inner {
@@ -1556,14 +1550,6 @@ a {
 
 
     /* Hero */
-
-   .home-hero {
-      background-image: url("images/home-bg.jpg");
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-   }
-
     .hero-inner {
         padding-top: 45px;
         padding-bottom: 45px;
