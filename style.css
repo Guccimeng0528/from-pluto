@@ -144,10 +144,8 @@ a {
 
 .site-logo {
     display: block;
-
-    width: 150px;
+    width: 39%;
     height: auto;
-
     object-fit: contain;
 }
 
@@ -453,7 +451,7 @@ a {
 .stat-card {
     position: relative;
 
-    padding: 24px;
+    padding: 12px 24px 7px;
 
     background: var(--background-soft);
 
