@@ -1166,7 +1166,7 @@ function createEventCard(event) {
             </h3>
 
             <button class="event-view" type="button">
-                View Event →
+                View Event
             </button>
         </div>
 
