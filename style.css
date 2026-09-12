@@ -120,6 +120,12 @@ a {
     border-bottom: 1px solid var(--border);
 }
 
+.home-page .site-header {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
 .header-inner {
     min-height: 82px;
 
