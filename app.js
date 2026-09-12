@@ -63,7 +63,7 @@ const INSTAGRAM_POST_LIMIT = 20;
 let events = [];
 let filteredEvents = [];
 let currentPage = 1;
-const PAGE_SIZE = 16;
+const PAGE_SIZE = 20;
 
 
 /* =========================================================
@@ -102,6 +102,15 @@ const prevPage =
 
 const nextPage =
     document.getElementById("nextPage");
+
+const firstPage =
+    document.getElementById("firstPage");
+
+const pageNumbers =
+    document.getElementById("pageNumbers");
+
+const lastPage =
+    document.getElementById("lastPage");
 
 const pageInfo =
     document.getElementById("pageInfo");
@@ -1419,59 +1428,144 @@ function updateStats() {
    PAGINATION
 ========================================================= */
 
-function updatePagination() {
-
-    /*
-        If pagination elements don't exist,
-        simply do nothing.
-    */
-
-    if (
-        !pageInfo &&
-        !prevPage &&
-        !nextPage
-    ) {
-
+function renderPagination() {
+    if (!pageNumbers) {
         return;
-
     }
-
 
     const totalPages =
-        Math.max(
-            1,
-            Math.ceil(
-                filteredEvents.length /
-                PAGE_SIZE
-            )
+        Math.ceil(
+            filteredEvents.length /
+            PAGE_SIZE
         );
 
+    pageNumbers.innerHTML = "";
 
-    if (pageInfo) {
+    if (totalPages <= 1) {
+        if (firstPage) {
+            firstPage.disabled = true;
+        }
 
-        pageInfo.textContent =
-            `${currentPage} / ${totalPages}`;
+        if (prevPage) {
+            prevPage.disabled = true;
+        }
 
+        if (nextPage) {
+            nextPage.disabled = true;
+        }
+
+        if (lastPage) {
+            lastPage.disabled = true;
+        }
+
+        return;
     }
 
+    /*
+     * Make sure current page
+     * is still valid.
+     */
+    if (currentPage > totalPages) {
+        currentPage = totalPages;
+    }
+
+    /*
+     * First / Previous
+     */
+    if (firstPage) {
+        firstPage.disabled =
+            currentPage === 1;
+    }
 
     if (prevPage) {
-
         prevPage.disabled =
-            currentPage <= 1;
-
+            currentPage === 1;
     }
 
-
+    /*
+     * Next / Last
+     */
     if (nextPage) {
-
         nextPage.disabled =
-            currentPage >= totalPages;
-
+            currentPage === totalPages;
     }
 
-}
+    if (lastPage) {
+        lastPage.disabled =
+            currentPage === totalPages;
+    }
 
+    /*
+     * Page range
+     *
+     * Show maximum 9 pages.
+     */
+    let startPage =
+        Math.max(
+            1,
+            currentPage - 4
+        );
+
+    let endPage =
+        Math.min(
+            totalPages,
+            startPage + 8
+        );
+
+    /*
+     * If we're near the end,
+     * move the range backwards.
+     */
+    if (endPage - startPage < 8) {
+        startPage =
+            Math.max(
+                1,
+                endPage - 8
+            );
+    }
+
+    for (
+        let page = startPage;
+        page <= endPage;
+        page++
+    ) {
+
+        const button =
+            document.createElement("button");
+
+        button.type = "button";
+        button.className =
+            "page-btn page-number";
+
+        button.textContent = page;
+
+        if (page === currentPage) {
+            button.classList.add(
+                "active"
+            );
+        }
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                currentPage = page;
+
+                renderEvents();
+                renderPagination();
+
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+            }
+        );
+
+        pageNumbers.appendChild(
+            button
+        );
+    }
+}
 
 /* =========================================================
    EVENT LISTENERS
