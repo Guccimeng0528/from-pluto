@@ -865,7 +865,7 @@ a {
     right: 0;
     bottom: 0;
     transform: translateY(50%);
-    z-index: 5;
+    z-index: 10;
     padding: 8px 12px;
     background: #fff;
     border: 1px solid #000;
@@ -878,7 +878,9 @@ a {
 
 /* Event body */
 .event-body {
-    padding: 20px;
+   position: relative;
+   padding: 20px;
+   z-index: 1;
 }
 
 .event-tags {
