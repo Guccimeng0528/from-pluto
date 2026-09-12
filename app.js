@@ -1709,14 +1709,9 @@ function openModal(event) {
     if (modalArtist) {
 
         modalArtist.textContent =
-            Array.isArray(
-                event.NAMTANFILM
-            )
-                ? event.NAMTANFILM.join(
-                    ", "
-                )
-                : event.NAMTANFILM ||
-                  "N/A";
+            Array.isArray(event.NAMTANFILM)
+                ? event.NAMTANFILM.join(", ")
+                : event.NAMTANFILM || "N/A";
     }
 
 
@@ -1727,14 +1722,9 @@ function openModal(event) {
     if (modalType) {
 
         modalType.textContent =
-            Array.isArray(
-                event.Type
-            )
-                ? event.Type.join(
-                    ", "
-                )
-                : event.Type ||
-                  "Other";
+            Array.isArray(event.Type)
+                ? event.Type.join(", ")
+                : event.Type || "Other";
     }
 
 
@@ -1745,8 +1735,7 @@ function openModal(event) {
     if (modalTitle) {
 
         modalTitle.textContent =
-            event.Name ||
-            "Untitled Event";
+            event.Name || "Untitled Event";
     }
 
 
@@ -1757,9 +1746,33 @@ function openModal(event) {
     if (modalDate) {
 
         modalDate.textContent =
-            formatFullDate(
-                event.Date
-            );
+            formatFullDate(event.Date);
+    }
+
+
+    /* -----------------------------------------------------
+       HASHTAG
+    ----------------------------------------------------- */
+
+    if (modalHashtag) {
+
+        modalHashtag.textContent =
+            Array.isArray(event.Hashtag)
+                ? event.Hashtag.join(", ")
+                : event.Hashtag || "—";
+    }
+
+
+    /* -----------------------------------------------------
+       KW
+    ----------------------------------------------------- */
+
+    if (modalKW) {
+
+        modalKW.textContent =
+            Array.isArray(event.KW)
+                ? event.KW.join(", ")
+                : event.KW || "—";
     }
 
 
@@ -1770,32 +1783,7 @@ function openModal(event) {
     if (modalLocation) {
 
         modalLocation.textContent =
-            event.Location ||
-            "—";
-    }
-
-
-    /* -----------------------------------------------------
-       DESCRIPTION
-    ----------------------------------------------------- */
-
-    if (modalDescription) {
-
-        const description =
-            event.Description ||
-            event.KW ||
-            event.Hashtag ||
-            "—";
-
-
-        modalDescription.textContent =
-            Array.isArray(
-                description
-            )
-                ? description.join(
-                    ", "
-                )
-                : description;
+            event.Location || "—";
     }
 
 
@@ -1809,12 +1797,9 @@ function openModal(event) {
 
             modalImage.innerHTML = `
                 <img
-                    src="${escapeHTML(
-                        event.Image
-                    )}"
+                    src="${escapeHTML(event.Image)}"
                     alt="${escapeHTML(
-                        event.Name ||
-                        "Event"
+                        event.Name || "Event"
                     )}"
                 >
             `;
@@ -1822,9 +1807,7 @@ function openModal(event) {
         } else {
 
             modalImage.innerHTML = `
-                <div
-                    class="event-image-placeholder"
-                >
+                <div class="event-image-placeholder">
                     NF
                 </div>
             `;
@@ -1840,21 +1823,15 @@ function openModal(event) {
 
         if (event.Link) {
 
-            modalLink.href =
-                event.Link;
+            modalLink.href = event.Link;
 
-            modalLink.classList.remove(
-                "hidden"
-            );
+            modalLink.classList.remove("hidden");
 
         } else {
 
-            modalLink.href =
-                "#";
+            modalLink.href = "#";
 
-            modalLink.classList.add(
-                "hidden"
-            );
+            modalLink.classList.add("hidden");
         }
     }
 
@@ -1863,14 +1840,9 @@ function openModal(event) {
        SHOW MODAL
     ----------------------------------------------------- */
 
-    eventModal.classList.add(
-        "active"
-    );
+    eventModal.classList.add("active");
 
-
-    document.body.classList.add(
-        "modal-open"
-    );
+    document.body.classList.add("modal-open");
 }
 
 
@@ -1884,15 +1856,9 @@ function closeModal() {
         return;
     }
 
+    eventModal.classList.remove("active");
 
-    eventModal.classList.remove(
-        "active"
-    );
-
-
-    document.body.classList.remove(
-        "modal-open"
-    );
+    document.body.classList.remove("modal-open");
 }
 
 
