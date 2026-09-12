@@ -564,7 +564,7 @@ if (resultCount) {
 
 
 renderEvents();
-
+}
 
 /* =========================================================
    CLEAR FILTERS
