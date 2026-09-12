@@ -1991,7 +1991,7 @@ function openModal(event) {
 
             modalImage.innerHTML = `
                 <div class="event-image-placeholder">
-                    NF
+                    <img src="images/NF.png" alt="NF">
                 </div>
             `;
         }
