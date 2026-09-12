@@ -106,22 +106,39 @@ a {
 /* =========================================================
    HEADER
    ========================================================= */
-.site-header {
+
+/* Header container — sticky */
+#site-header {
     position: sticky;
     top: 0;
     z-index: 1000;
+    margin-bottom: -82px;
+}
+
+/* Actual header */
+.site-header {
+    position: relative;
     background: rgba(255, 255, 255, 0.94);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--border);
 }
 
+
+/* =========================================================
+   HOME HEADER
+   ========================================================= */
+
+.home-page #site-header {
+    margin-bottom: -82px;
+}
 .home-page .site-header {
     background: rgba(0, 0, 0, 0.45);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.35);
 }
+
 
 /* Header inner */
 .header-inner {
@@ -137,7 +154,6 @@ a {
 .logo {
     display: inline-flex;
     align-items: center;
-
     transition: transform 0.2s ease;
 }
 
@@ -219,6 +235,8 @@ a {
     border-bottom: 1px solid var(--border);
 }
 
+
+/* Home page only */
 .home-hero {
     background-image: url("images/home-bg.jpg");
     background-size: cover;
@@ -1521,6 +1539,14 @@ html::-webkit-scrollbar {
     .header-inner {
         min-height: 68px;
     }
+
+   #site-header {
+      margin-bottom: -68px;
+   }
+   
+   .home-page #site-header {
+      margin-bottom: -68px;
+   }
 
     .site-logo {
         width: 120px;
