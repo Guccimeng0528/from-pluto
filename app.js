@@ -23,6 +23,7 @@ const SAMPLE_EVENTS = [
     }
 ];
 
+loadHeader();
 
 /* =========================================================
    GLOBAL STATE
@@ -196,6 +197,60 @@ async function init() {
     setupEvents();
 
     loadInstagramFeeds();
+}
+
+
+
+
+
+/* =========================================================
+   Header navbar
+========================================================= */
+async function loadHeader() {
+    const headerContainer =
+        document.getElementById("site-header");
+
+    if (!headerContainer) return;
+
+    try {
+        const response =
+            await fetch("components/header.html");
+
+        if (!response.ok) {
+            throw new Error("Failed to load header");
+        }
+
+        headerContainer.innerHTML =
+            await response.text();
+
+        setActiveNav();
+    } catch (error) {
+        console.error(
+            "Header loading error:",
+            error
+        );
+    }
+}
+
+
+function setActiveNav() {
+    const currentPage =
+        window.location.pathname.split("/").pop()
+        || "index.html";
+
+    document
+        .querySelectorAll(".nav a")
+        .forEach(link => {
+            const linkPage =
+                link.getAttribute("href")
+                .split("/")
+                .pop();
+
+            link.classList.toggle(
+                "active",
+                linkPage === currentPage
+            );
+        });
 }
 
 
