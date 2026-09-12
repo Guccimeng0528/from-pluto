@@ -457,26 +457,35 @@ function setupFilters() {
         }
     }
 
-   /* -----------------------------------------------------
-       CLEAR FILTERS
-    ----------------------------------------------------- */
+/* =========================================================
+   CLEAR ALL FILTERS
+========================================================= */
 
-    if (clearFilters) {
+function clearAllFilters() {
 
-        clearFilters.addEventListener(
-            "click",
-            clearAllFilters
-        );
+    if (searchInput) {
+        searchInput.value = "";
     }
 
-
-    if (emptyClear) {
-
-        emptyClear.addEventListener(
-            "click",
-            clearAllFilters
-        );
+    if (monthFilter) {
+        monthFilter.value = "";
     }
+
+    if (dateFilter) {
+        dateFilter.value = "";
+    }
+
+    if (artistFilter) {
+        artistFilter.value = "";
+    }
+
+    if (typeFilter) {
+        typeFilter.value = "";
+    }
+
+    currentPage = 1;
+
+    applyFilters();
 }
 
 
