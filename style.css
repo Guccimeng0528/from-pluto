@@ -864,10 +864,9 @@ a {
 .event-date {
     position: absolute;
     right: 0px;
-    top: 128px;
-    transform: translateY(50%);
+    transform: translateY(-50%);
     z-index: 10;
-    padding: 4px 6px;
+    padding: 5px 6px;
     background: #f9d72f;
     border: 1px solid #000;
     border-radius: 4px;
