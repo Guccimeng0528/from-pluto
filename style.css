@@ -252,45 +252,15 @@ a {
     padding-bottom: 70px;
 }
 
-.hero-text {
-    position: relative;
-    z-index: 2;
-}
-
-.hero-text h1 {
-    margin-bottom: 35px;
-
-    font-size: clamp(
-        42px,
-        6vw,
-        82px
-    );
-
-    line-height: 0.95;
-
-    letter-spacing: -3px;
-}
-
-.hero-text h1 img {
-    display: block;
-
-    width: min(300px, 70vw) !important;
-
+.youtube-video {
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 16 / 9;
     height: auto;
-
-    margin-bottom: 12px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: none;
 }
-
-.hero-text h1 span {
-    display: inline-block;
-
-    color: var(--teal-primary);
-
-    font-size: 0.55em;
-
-    letter-spacing: -1px;
-}
-
 
 /* Hero button */
 
