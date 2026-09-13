@@ -2370,6 +2370,53 @@ html::-webkit-scrollbar {
         gap: 12px;
     }
 
+/* Profile */
+.profile-section {
+        padding: 45px 0 70px;
+    }
+
+    .profile-heading {
+        margin-bottom: 30px;
+    }
+
+    .profile-tabs {
+        grid-template-columns:
+            repeat(3, 1fr);
+    }
+
+    .profile-tab {
+        padding: 16px 5px;
+        font-size: 10px;
+    }
+
+    .profile-content {
+        margin-top: 30px;
+    }
+
+    .profile-layout {
+        grid-template-columns: 1fr;
+        gap: 35px;
+    }
+
+    .profile-info {
+        padding-right: 0;
+    }
+
+    .profile-info h2 {
+        font-size: 48px;
+    }
+
+    .profile-name {
+        margin-bottom: 30px;
+    }
+
+    .profile-detail {
+        grid-template-columns: 90px 1fr;
+        gap: 15px;
+    }
+
+
+   
     /* Calendar */
    .calendar-section {
     padding: 45px 0;
