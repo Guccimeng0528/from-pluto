@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Event Schedule — From PLUTO</title>
+    <title>Schedule — From PLUTO</title>
 
     <meta name="description" content="Browse the complete NamtanFilm event schedule.">
 
@@ -20,19 +20,76 @@
 
     <section class="page-hero">
         <div class="container">
-            <span class="eyebrow">EVENT SCHEDULE</span>
-            <h1>Event Schedule</h1>
-            <p>Search and browse the complete NamtanFilm event archive.</p>
+            <span class="eyebrow">EVENT</span>
+            <h1>Schedule</h1>
         </div>
     </section>
 
 
-   <!-- STATISTICS -->
+    <!-- CALENDAR -->
+<section class="calendar-section">
+    <div class="container">
+
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">CALENDAR</span>
+                <h2>Event Calendar</h2>
+            </div>
+
+            <div class="calendar-navigation">
+                <button
+                    type="button"
+                    id="calendarPrev"
+                    class="calendar-nav-btn"
+                    aria-label="Previous month"
+                >
+                    ←
+                </button>
+
+                <strong id="calendarMonth">
+                    September 2026
+                </strong>
+
+                <button
+                    type="button"
+                    id="calendarNext"
+                    class="calendar-nav-btn"
+                    aria-label="Next month"
+                >
+                    →
+                </button>
+            </div>
+        </div>
+
+        <div id="calendar" class="calendar">
+
+            <div class="calendar-weekdays">
+                <div>SUN</div>
+                <div>MON</div>
+                <div>TUE</div>
+                <div>WED</div>
+                <div>THU</div>
+                <div>FRI</div>
+                <div>SAT</div>
+            </div>
+
+            <div
+                id="calendarDays"
+                class="calendar-days"
+            ></div>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- STATISTICS -->
+<section class="stats-section">
+<!-- STATISTICS -->
 <section class="stats-section">
     <div class="container stats-grid">
-
         <!-- ROW 1 -->
-
         <div class="stat-card">
             <span class="stat-label">TOTAL EVENTS</span>
 
