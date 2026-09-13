@@ -248,8 +248,8 @@ a {
     grid-template-columns: 1.1fr 0.9fr;
     align-items: center;
     gap: 50px;
-    padding-top: 70px;
-    padding-bottom: 70px;
+    padding-top: 82px;
+    padding-bottom: 50px;
 }
 
 .youtube-video {
@@ -267,25 +267,16 @@ a {
 .hero-button {
     display: inline-flex;
     align-items: center;
-
     gap: 14px;
-
     padding: 14px 22px;
-
     color: var(--black);
-
     background: var(--yellow-primary);
-
     border: 2px solid var(--black);
-
     border-radius: 999px;
-
     font-size: 14px;
     font-weight: 800;
-
     box-shadow:
         5px 5px 0 var(--teal-primary);
-
     transition:
         transform 0.2s ease,
         box-shadow 0.2s ease;
@@ -293,7 +284,6 @@ a {
 
 .hero-button span {
     font-size: 18px;
-
     transition: transform 0.2s ease;
 }
 
