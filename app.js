@@ -1404,8 +1404,7 @@ function createEventCard(event) {
     const imageHTML =
         imagePath
             ? `
-                <img
-                    src="${escapeHTML(
+                <img src="${escapeHTML(
                         imagePath
                     )}"
                     alt="${escapeHTML(
@@ -1416,10 +1415,8 @@ function createEventCard(event) {
                 >
             `
             : `
-                <div
-                    class="event-image-placeholder"
-                >
-                    NF
+                <div class="event-image-placeholder">
+                    <img src="images/placeholder.jpg" alt="NF">
                 </div>
             `;
 
@@ -2488,7 +2485,7 @@ function openModal(event) {
 
             modalImage.innerHTML = `
                 <div class="event-image-placeholder">
-                    <img src="images/nf.png" alt="NF">
+                    <img src="images/placeholder.jpg" alt="NF">
                 </div>
             `;
         }
