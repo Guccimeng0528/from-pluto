@@ -24,6 +24,7 @@ const SAMPLE_EVENTS = [
 ];
 
 loadHeader();
+loadFooter();
 
 /* =========================================================
    GLOBAL STATE
@@ -269,6 +270,41 @@ function setActiveNav() {
                 linkPage === currentPage
             );
         });
+}
+
+
+
+/* =========================================================
+   Footer
+========================================================= */
+async function loadFooter() {
+
+    const footerContainer =
+        document.getElementById("site-footer");
+
+    if (!footerContainer) return;
+
+    try {
+
+        const response =
+            await fetch("components/footer.html");
+
+        if (!response.ok) {
+            throw new Error(
+                "Failed to load footer"
+            );
+        }
+
+        footerContainer.innerHTML =
+            await response.text();
+
+    } catch (error) {
+
+        console.error(
+            "Footer loading error:",
+            error
+        );
+    }
 }
 
 
