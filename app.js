@@ -254,6 +254,50 @@ function setActiveNav() {
 }
 
 
+
+
+/* =========================================================
+   Upcoming events
+========================================================= */
+function renderUpcomingEvents() {
+    const container = document.getElementById("upcomingEvents");
+
+    if (!container) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcomingEvents = events
+        .filter(event => {
+            if (!event.Date) return false;
+
+            const eventDate = new Date(event.Date);
+            eventDate.setHours(0, 0, 0, 0);
+
+            return eventDate >= today;
+        })
+        .sort((a, b) => {
+            return new Date(a.Date) - new Date(b.Date);
+        });
+
+    container.innerHTML = "";
+
+    if (!upcomingEvents.length) {
+        container.innerHTML = `
+            <div class="empty-state">
+                No upcoming events.
+            </div>
+        `;
+        return;
+    }
+
+    upcomingEvents.forEach(event => {
+        container.appendChild(createEventCard(event));
+    });
+}
+
+
+
 /* =========================================================
    LOAD EVENTS
 ========================================================= */
