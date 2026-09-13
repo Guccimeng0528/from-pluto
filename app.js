@@ -118,6 +118,30 @@ const lastPage =
 const pageInfo =
     document.getElementById("pageInfo");
 
+/* CALENDAR DOM */
+
+const calendar =
+    document.getElementById("calendar");
+
+const calendarDays =
+    document.getElementById("calendarDays");
+
+const calendarMonth =
+    document.getElementById("calendarMonth");
+
+const calendarPrev =
+    document.getElementById("calendarPrev");
+
+const calendarNext =
+    document.getElementById("calendarNext");
+
+/* CALENDAR STATE */
+
+let calendarDate =
+    new Date();
+
+calendarDate.setDate(1);
+
 
 /* =========================================================
    MODAL DOM
@@ -185,24 +209,16 @@ document.addEventListener(
 
 
 async function init() {
-
     await loadEvents();
-
     setupFilters();
-
     updateStats();
-
     applyFilters();
-
     renderUpcomingEvents();
-
+    renderCalendar();
+    setupCalendar();
     setupEvents();
-
     loadInstagramFeeds();
 }
-
-
-
 
 
 /* =========================================================
@@ -369,6 +385,314 @@ function renderUpcomingEvents() {
         }
     );
 }
+
+
+
+
+/* =========================================================
+   CALENDAR
+========================================================= */
+
+function setupCalendar() {
+
+    if (!calendar) {
+        return;
+    }
+
+    calendarPrev?.addEventListener(
+        "click",
+        () => {
+
+            calendarDate.setMonth(
+                calendarDate.getMonth() - 1
+            );
+
+            renderCalendar();
+        }
+    );
+
+    calendarNext?.addEventListener(
+        "click",
+        () => {
+
+            calendarDate.setMonth(
+                calendarDate.getMonth() + 1
+            );
+
+            renderCalendar();
+        }
+    );
+}
+
+
+function renderCalendar() {
+
+    if (!calendar || !calendarDays) {
+        return;
+    }
+
+    const year =
+        calendarDate.getFullYear();
+
+    const month =
+        calendarDate.getMonth();
+
+    const firstDay =
+        new Date(
+            year,
+            month,
+            1
+        ).getDay();
+
+    const daysInMonth =
+        new Date(
+            year,
+            month + 1,
+            0
+        ).getDate();
+
+    const monthName =
+        calendarDate.toLocaleDateString(
+            "en-US",
+            {
+                month: "long",
+                year: "numeric"
+            }
+        );
+
+    calendarMonth.textContent =
+        monthName;
+
+    calendarDays.innerHTML = "";
+
+    /* EMPTY DAYS BEFORE MONTH */
+
+    for (
+        let i = 0;
+        i < firstDay;
+        i++
+    ) {
+
+        const emptyDay =
+            document.createElement("div");
+
+        emptyDay.className =
+            "calendar-day calendar-day-empty";
+
+        calendarDays.appendChild(
+            emptyDay
+        );
+    }
+
+
+    /* MONTH DAYS */
+
+    for (
+        let day = 1;
+        day <= daysInMonth;
+        day++
+    ) {
+
+        const dayElement =
+            document.createElement("div");
+
+        dayElement.className =
+            "calendar-day";
+
+        const currentDate =
+            new Date(
+                year,
+                month,
+                day
+            );
+
+        currentDate.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+
+
+        /* TODAY */
+
+        const today =
+            new Date();
+
+        today.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+
+        if (
+            currentDate.getTime() ===
+            today.getTime()
+        ) {
+            dayElement.classList.add(
+                "is-today"
+            );
+        }
+
+
+        /* DAY NUMBER */
+
+        const dayNumber =
+            document.createElement("div");
+
+        dayNumber.className =
+            "calendar-day-number";
+
+        dayNumber.textContent =
+            day;
+
+        dayElement.appendChild(
+            dayNumber
+        );
+
+
+        /* EVENTS */
+
+        const dayEvents =
+            events.filter(
+                event =>
+                    eventOccursOnDate(
+                        event,
+                        currentDate
+                    )
+            );
+
+        dayEvents.forEach(
+            event => {
+
+                const eventElement =
+                    document.createElement(
+                        "button"
+                    );
+
+                eventElement.type =
+                    "button";
+
+                eventElement.className =
+                    "calendar-event";
+
+                eventElement.textContent =
+                    event.Name ||
+                    "Untitled Event";
+
+                eventElement.title =
+                    event.Name ||
+                    "Untitled Event";
+
+                eventElement.addEventListener(
+                    "click",
+                    () => {
+                        openModal(event);
+                    }
+                );
+
+                dayElement.appendChild(
+                    eventElement
+                );
+            }
+        );
+
+
+        calendarDays.appendChild(
+            dayElement
+        );
+    }
+}
+
+
+function eventOccursOnDate(
+    event,
+    targetDate
+) {
+
+    if (!event || !event.Date) {
+        return false;
+    }
+
+    const value =
+        String(event.Date).trim();
+
+    if (!value) {
+        return false;
+    }
+
+
+    /*
+       Supports:
+
+       2026-09-13
+
+       2026-09-13 → 2026-09-15
+    */
+
+    const parts =
+        value.split("→");
+
+    const startDate =
+        parseEventDate(
+            parts[0]
+        );
+
+    if (!startDate) {
+        return false;
+    }
+
+    startDate.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    /*
+       Single-day event
+    */
+
+    if (parts.length === 1) {
+
+        return (
+            startDate.getTime() ===
+            targetDate.getTime()
+        );
+    }
+
+
+    /*
+       Multi-day event
+    */
+
+    const endDate =
+        parseEventDate(
+            parts[1]
+        );
+
+    if (!endDate) {
+        return (
+            startDate.getTime() ===
+            targetDate.getTime()
+        );
+    }
+
+    endDate.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+    return (
+        targetDate >= startDate &&
+        targetDate <= endDate
+    );
+}
+
 
 
 
