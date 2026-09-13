@@ -217,6 +217,7 @@ async function init() {
     renderUpcomingEvents();
     renderCalendar();
     setupCalendar();
+    setupProfileTabs();
     setupEvents();
     loadInstagramFeeds();
 }
@@ -420,6 +421,69 @@ function renderUpcomingEvents() {
             );
         }
     );
+}
+
+
+
+/* =========================================================
+   PROFILE TABS
+========================================================= */
+function setupProfileTabs() {
+    const tabs =
+        document.querySelectorAll(
+            ".profile-tab"
+        );
+
+    const panels =
+        document.querySelectorAll(
+            ".profile-panel"
+        );
+
+    if (!tabs.length || !panels.length) {
+        return;
+    }
+
+    tabs.forEach(tab => {
+
+        tab.addEventListener(
+            "click",
+            () => {
+
+                const target =
+                    tab.dataset.profile;
+
+                tabs.forEach(item => {
+                    item.classList.remove(
+                        "active"
+                    );
+                });
+
+                panels.forEach(panel => {
+                    panel.classList.remove(
+                        "active"
+                    );
+                });
+
+
+                tab.classList.add(
+                    "active"
+                );
+
+                const targetPanel =
+                    document.getElementById(
+                        `profile-${target}`
+                    );
+
+                if (targetPanel) {
+                    targetPanel.classList.add(
+                        "active"
+                    );
+                }
+
+            }
+        );
+
+    });
 }
 
 
