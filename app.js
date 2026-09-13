@@ -194,6 +194,8 @@ async function init() {
 
     applyFilters();
 
+    renderUpcomingEvents();
+
     setupEvents();
 
     loadInstagramFeeds();
@@ -260,29 +262,90 @@ function setActiveNav() {
    Upcoming events
 ========================================================= */
 function renderUpcomingEvents() {
-    const container = document.getElementById("upcomingEvents");
 
-    if (!container) return;
+    const container =
+        document.getElementById(
+            "upcomingEvents"
+        );
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    if (!container) {
+        return;
+    }
 
-    const upcomingEvents = events
-        .filter(event => {
-            if (!event.Date) return false;
 
-            const eventDate = new Date(event.Date);
-            eventDate.setHours(0, 0, 0, 0);
+    /* -----------------------------------------------------
+       TODAY
+    ----------------------------------------------------- */
 
-            return eventDate >= today;
-        })
-        .sort((a, b) => {
-            return new Date(a.Date) - new Date(b.Date);
-        });
+    const today =
+        new Date();
 
+    today.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    /* -----------------------------------------------------
+       UPCOMING EVENTS
+    ----------------------------------------------------- */
+    const upcomingEvents =
+        events
+            .filter(event => {
+
+                const eventDate =
+                    parseEventDate(
+                        event.Date
+                    );
+
+                if (!eventDate) {
+                    return false;
+                }
+
+                eventDate.setHours(
+                    0,
+                    0,
+                    0,
+                    0
+                );
+
+                return (
+                    eventDate >=
+                    today
+                );
+            })
+            .sort((a, b) => {
+
+                const dateA =
+                    parseEventDate(
+                        a.Date
+                    );
+
+                const dateB =
+                    parseEventDate(
+                        b.Date
+                    );
+
+                return (
+                    dateA.getTime() -
+                    dateB.getTime()
+                );
+            });
+
+    /* -----------------------------------------------------
+       CLEAR
+    ----------------------------------------------------- */
     container.innerHTML = "";
 
-    if (!upcomingEvents.length) {
+    /* -----------------------------------------------------
+       EMPTY
+    ----------------------------------------------------- */
+    if (
+        upcomingEvents.length ===
+        0
+    ) {
         container.innerHTML = `
             <div class="empty-state">
                 No upcoming events.
@@ -291,9 +354,20 @@ function renderUpcomingEvents() {
         return;
     }
 
-    upcomingEvents.forEach(event => {
-        container.appendChild(createEventCard(event));
-    });
+    /* -----------------------------------------------------
+       CREATE CARDS
+    ----------------------------------------------------- */
+    upcomingEvents.forEach(
+        event => {
+            const card =
+                createEventCard(
+                    event
+                );
+            container.appendChild(
+                card
+            );
+        }
+    );
 }
 
 
