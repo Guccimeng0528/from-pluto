@@ -322,6 +322,193 @@ a {
 
 
 
+/* =========================================================
+   PROFILE
+========================================================= */
+
+.profile-section {
+    padding: 70px 0 100px;
+}
+
+.profile-heading {
+    margin-bottom: 45px;
+}
+
+.profile-heading h1 {
+    margin-top: 8px;
+}
+
+
+/* TABS */
+
+.profile-tabs {
+    display: grid;
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-tab {
+    position: relative;
+
+    padding: 20px 15px;
+
+    border: none;
+    background: transparent;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    letter-spacing: 0.12em;
+
+    color: var(--muted);
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease;
+}
+
+.profile-tab + .profile-tab {
+    border-left: 1px solid var(--border);
+}
+
+.profile-tab:hover {
+    color: var(--text);
+}
+
+.profile-tab.active {
+    color: var(--text);
+}
+
+.profile-tab.active::after {
+    content: "";
+
+    position: absolute;
+
+    left: 20%;
+    right: 20%;
+    bottom: -1px;
+
+    height: 2px;
+
+    background: var(--text);
+}
+
+
+/* CONTENT */
+
+.profile-content {
+    margin-top: 45px;
+}
+
+.profile-panel {
+    display: none;
+}
+
+.profile-panel.active {
+    display: block;
+}
+
+
+/* PROFILE LAYOUT */
+
+.profile-layout {
+    display: grid;
+
+    grid-template-columns:
+        minmax(300px, 0.9fr)
+        minmax(350px, 1.1fr);
+
+    gap: 70px;
+
+    align-items: center;
+
+    padding: 20px 0;
+}
+
+
+/* IMAGE */
+
+.profile-image {
+    width: 100%;
+}
+
+.profile-image-placeholder {
+    aspect-ratio: 4 / 5;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--border);
+
+    background: rgba(0, 0, 0, 0.03);
+
+    font-size: 12px;
+    letter-spacing: 0.12em;
+
+    color: var(--muted);
+}
+
+
+/* INFO */
+
+.profile-info {
+    padding-right: 30px;
+}
+
+.profile-info h2 {
+    margin: 10px 0 5px;
+
+    font-size: clamp(
+        42px,
+        6vw,
+        76px
+    );
+
+    line-height: 0.95;
+}
+
+.profile-name {
+    margin: 0 0 45px;
+
+    color: var(--muted);
+
+    font-size: 14px;
+}
+
+
+.profile-details {
+    border-top: 1px solid var(--border);
+}
+
+.profile-detail {
+    display: grid;
+    grid-template-columns:120px 1fr;
+    gap: 25px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-detail > span {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+}
+
+.profile-detail p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+
+
 
 /* =========================================================
    CALENDAR
