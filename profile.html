@@ -13,219 +13,35 @@
 <div id="site-header"></div>
 
 <main>
-    <section class="page-hero">
-        <div class="container">
-            <span class="eyebrow">
-                PROFILE
-            </span>
-
-            <h1>
-                NamtanFilm
-            </h1>
-
-            <p>
-                A closer look at Namtan, Film, and NamtanFilm.
-            </p>
-
-        </div>
-
-    </section>
-
-
-    <section class="profile-section">
-
-        <div class="container profile-grid">
-
-
-            <!-- NAMTAN -->
-
-            <article class="profile-card">
-
-                <div class="profile-image">
-
-                    <img
-                        src="images/namtan.jpg"
-                        alt="Namtan"
-                        onerror="this.parentElement.innerHTML='<div class=&quot;profile-placeholder&quot;>N</div>'"
-                    >
-
-                </div>
-
-                <div class="profile-body">
-
-                    <span class="eyebrow">
-                        ACTRESS
-                    </span>
-
-                    <h2>
-                        Namtan
-                    </h2>
-
-                    <p>
-                        Namtan Tipnaree Weerawatnodom
-                    </p>
-
-                    <div class="profile-links">
-
-                        <a href="#" target="_blank" rel="noopener noreferrer">
-                            Official
-                        </a>
-
-                        <a href="#" target="_blank" rel="noopener noreferrer">
-                            Instagram
-                        </a>
-
-                        <a href="#" target="_blank" rel="noopener noreferrer">
-                            X
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </article>
-
-
-            <!-- FILM -->
-
-            <article class="profile-card">
-
-                <div class="profile-image">
-
-                    <img
-                        src="images/film.jpg"
-                        alt="Film"
-                        onerror="this.parentElement.innerHTML='<div class=&quot;profile-placeholder&quot;>F</div>'"
-                    >
-
-                </div>
-
-                <div class="profile-body">
-
-                    <span class="eyebrow">
-                        ACTRESS
-                    </span>
-
-                    <h2>
-                        Film
-                    </h2>
-
-                    <p>
-                        Film Rachanun Mahawan
-                    </p>
-
-                    <div class="profile-links">
-
-                        <a href="#" target="_blank" rel="noopener noreferrer">
-                            Official
-                        </a>
-
-                        <a href="#" target="_blank" rel="noopener noreferrer">
-                            Instagram
-                        </a>
-
-                        <a href="#" target="_blank" rel="noopener noreferrer">
-                            X
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </article>
-
-
-            <!-- NAMTANFILM -->
-
-            <article class="profile-card profile-card-wide">
-
-                <div class="profile-image profile-image-small">
-
-                    <img
-                        src="images/name.png"
-                        alt="NamtanFilm"
-                        onerror="this.parentElement.innerHTML='<div class=&quot;profile-placeholder&quot;>NF</div>'"
-                    >
-
-                </div>
-
-                <div class="profile-body">
-
-                    <span class="eyebrow">
-                        DUO
-                    </span>
-
-                    <h2>
-                        NamtanFilm
-                    </h2>
-
-                    <p>
-                        NamtanFilm is the pairing of Namtan and Film,
-                        documented here through their public events,
-                        appearances, live streams, fan meetings,
-                        projects, and activities.
-                    </p>
-
-                    <a
-                        href="schedule.html"
-                        class="hero-button small-button"
-                    >
-                        View Events →
-                    </a>
-
-                </div>
-
-            </article>
-
-
-        </div>
-
-    </section>
-
-
-    <section class="about-section">
-
-        <div class="container about-inner">
-
-            <div>
-
-                <span class="eyebrow">
-                    ABOUT THIS ARCHIVE
-                </span>
-
-                <h2>
-                    A small archive
-                    <br>
-                    for NamtanFilm.
-                </h2>
-
-            </div>
-
-
-            <div class="about-text">
-
-                <p>
-                    From PLUTO is an unofficial fan-made archive
-                    dedicated to Namtan, Film, and NamtanFilm.
-                </p>
-
-                <p>
-                    The archive brings together public event information
-                    in one place, making it easier to browse and search
-                    activities by date, artist, and event type.
-                </p>
-
-                <p>
-                    This website is created and maintained by fans
-                    and is not officially affiliated with Namtan,
-                    Film, GMMTV, or their management.
-                </p>
-
-            </div>
-
-        </div>
-
-    </section>
+    <div class="profile-tabs">
+    <button class="profile-tab active" data-profile="namtan">
+        NAMTAN
+    </button>
+
+    <button class="profile-tab" data-profile="film">
+        FILM
+    </button>
+
+    <button class="profile-tab" data-profile="mascot">
+        MASCOT
+    </button>
+</div>
+
+<div class="profile-content">
+
+    <div class="profile-panel active" id="profile-namtan">
+        ...
+    </div>
+
+    <div class="profile-panel" id="profile-film">
+        ...
+    </div>
+
+    <div class="profile-panel" id="profile-mascot">
+        ...
+    </div>
+
+</div>
 
 </main>
 
