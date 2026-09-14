@@ -1,1321 +1,1371 @@
+/* =========================================================
+   FROM PLUTO — WORKER
+   Notion Event API + Notion Page Content
+   ========================================================= */
+
 const NOTION_VERSION = "2026-03-11";
 const DATA_SOURCE_ID = "2dd3ab68-3eeb-8161-af9d-000b72ae36d6";
 
-const CACHE_TTL = 300; // 5 minutes
+const CACHE_TTL = 300;
+
+
+/* =========================================================
+   MAIN
+========================================================= */
 
 export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
+    async fetch(request, env, ctx) {
 
-    // =====================================================
-    // Notion Events API
-    // =====================================================
+        const url = new URL(request.url);
 
-    if (url.pathname === "/data/events") {
-      return getSchedule(request, env, ctx);
+        /* EVENTS */
+        if (url.pathname === "/data/events") {
+            return getSchedule(request, env, ctx);
+        }
+
+        /* PAGE CONTENT */
+        if (url.pathname.startsWith("/data/content/")) {
+
+            const pageId =
+                decodeURIComponent(
+                    url.pathname.replace("/data/content/", "")
+                );
+
+            if (!pageId) {
+                return jsonResponse(
+                    { error: "Missing page ID" },
+                    400
+                );
+            }
+
+            return getPageContent(
+                request,
+                env,
+                ctx,
+                pageId
+            );
+        }
+
+
+        /* CLEAN ROUTES */
+
+        if (url.pathname === "/") {
+            return env.ASSETS.fetch(
+                new Request(
+                    new URL("/index.html", request.url),
+                    request
+                )
+            );
+        }
+
+        if (url.pathname === "/profile") {
+            return env.ASSETS.fetch(
+                new Request(
+                    new URL("/profile.html", request.url),
+                    request
+                )
+            );
+        }
+
+        if (url.pathname === "/schedule") {
+            return env.ASSETS.fetch(
+                new Request(
+                    new URL("/schedule.html", request.url),
+                    request
+                )
+            );
+        }
+
+        if (url.pathname === "/archive") {
+            return env.ASSETS.fetch(
+                new Request(
+                    new URL("/archive.html", request.url),
+                    request
+                )
+            );
+        }
+
+
+        return env.ASSETS.fetch(request);
     }
-
-
-    // =====================================================
-    // Notion Event Content API
-    // =====================================================
-
-    if (url.pathname.startsWith("/data/content/")) {
-
-      const pageId =
-        url.pathname
-          .replace("/data/content/", "")
-          .trim();
-
-      if (!pageId) {
-        return jsonResponse(
-          {
-            error: "Missing Notion page ID"
-          },
-          400
-        );
-      }
-
-      return getPageContent(
-        request,
-        env,
-        ctx,
-        pageId
-      );
-    }
-
-
-    // =====================================================
-    // Clean URL Routes
-    // =====================================================
-
-    const routes = {
-      "/": "/index.html",
-      "/profile": "/profile.html",
-      "/schedule": "/schedule.html",
-      "/archive": "/archive.html"
-    };
-
-
-    if (routes[url.pathname]) {
-
-      const assetUrl = new URL(
-        routes[url.pathname],
-        request.url
-      );
-
-      return env.ASSETS.fetch(
-        new Request(assetUrl, {
-          method: request.method,
-          headers: request.headers
-        })
-      );
-
-    }
-
-
-    // =====================================================
-    // Everything else = normal static files
-    // =====================================================
-
-    return env.ASSETS.fetch(request);
-  }
 };
 
 
+/* =========================================================
+   EVENTS
+========================================================= */
 
-// =========================================================
-// GET ALL EVENTS
-// =========================================================
+async function getSchedule(request, env, ctx) {
 
-async function getSchedule(
-  request,
-  env,
-  ctx
-) {
-
-  if (!env.NOTION_TOKEN) {
-    return jsonResponse(
-      {
-        error:
-          "NOTION_TOKEN is not configured"
-      },
-      500
-    );
-  }
-
-
-  /*
-   * Cloudflare Cache
-   *
-   * The cache key is based on /data/events.
-   */
-
-  const cache = caches.default;
-
-  const cacheUrl = new URL(
-    "/data/events",
-    request.url
-  );
-
-  const cacheKey = new Request(
-    cacheUrl.toString(),
-    {
-      method: "GET"
-    }
-  );
-
-
-  // Try Cloudflare Cache first
-
-  const cachedResponse =
-    await cache.match(cacheKey);
-
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-
-
-  try {
-
-    const events = [];
-
-    let cursor = undefined;
-
-
-    /*
-     * Load all Notion pages
-     */
-
-    do {
-
-      const body = {
-        page_size: 100
-      };
-
-      if (cursor) {
-        body.start_cursor = cursor;
-      }
-
-
-      const response = await fetch(
-        `https://api.notion.com/v1/data_sources/${DATA_SOURCE_ID}/query`,
-        {
-          method: "POST",
-
-          headers: {
-            "Authorization":
-              `Bearer ${env.NOTION_TOKEN}`,
-
-            "Content-Type":
-              "application/json",
-
-            "Notion-Version":
-              NOTION_VERSION
-          },
-
-          body: JSON.stringify(body)
-        }
-      );
-
-
-      if (!response.ok) {
-
-        const errorText =
-          await response.text();
-
+    if (!env.NOTION_TOKEN) {
         return jsonResponse(
-          {
-            error:
-              "Notion API request failed",
-
-            status:
-              response.status,
-
-            details:
-              errorText
-          },
-
-          500
+            {
+                error: "NOTION_TOKEN is not configured"
+            },
+            500
         );
-      }
+    }
 
+    const cache =
+        caches.default;
 
-      const data =
-        await response.json();
-
-
-      for (
-        const page
-        of data.results || []
-      ) {
-
-        events.push(
-          convertPageToEvent(page)
+    const cacheKey =
+        new Request(
+            new URL(
+                "/data/events",
+                request.url
+            ),
+            request
         );
 
-      }
+    const cached =
+        await cache.match(cacheKey);
+
+    if (cached) {
+        return cached;
+    }
 
 
-      cursor =
-        data.has_more
-          ? data.next_cursor
-          : undefined;
+    try {
+
+        const pages = [];
+
+        let startCursor = undefined;
 
 
-    } while (cursor);
+        do {
 
+            const body = {
+                page_size: 100
+            };
 
-    /*
-     * Create response
-     */
-
-    const response =
-      new Response(
-        JSON.stringify(
-          events,
-          null,
-          2
-        ),
-        {
-          status: 200,
-
-          headers: {
-            "Content-Type":
-              "application/json; charset=utf-8",
-
-            "Cache-Control":
-              `public, max-age=${CACHE_TTL}`
-          }
-        }
-      );
-
-
-    /*
-     * Store in Cloudflare Cache
-     */
-
-    ctx.waitUntil(
-      cache.put(
-        cacheKey,
-        response.clone()
-      )
-    );
-
-
-    return response;
-
-
-  } catch (error) {
-
-    return jsonResponse(
-      {
-        error:
-          "Failed to load events from Notion",
-
-        details:
-          error.message
-      },
-
-      500
-    );
-
-  }
-
-}
-
-
-
-// =========================================================
-// GET NOTION PAGE CONTENT
-// =========================================================
-
-async function getPageContent(
-  request,
-  env,
-  ctx,
-  pageId
-) {
-
-  if (!env.NOTION_TOKEN) {
-    return jsonResponse(
-      {
-        error:
-          "NOTION_TOKEN is not configured"
-      },
-      500
-    );
-  }
-
-
-  /*
-   * Normalize UUID
-   *
-   * Notion accepts both UUID formats,
-   * but keeping the original ID is safest.
-   */
-
-  const cleanPageId =
-    pageId.trim();
-
-
-  /*
-   * Cloudflare Cache
-   *
-   * Each Notion page has its own cache.
-   */
-
-  const cache =
-    caches.default;
-
-  const cacheUrl =
-    new URL(
-      `/data/content/${cleanPageId}`,
-      request.url
-    );
-
-  const cacheKey =
-    new Request(
-      cacheUrl.toString(),
-      {
-        method: "GET"
-      }
-    );
-
-
-  // Try cache first
-
-  const cachedResponse =
-    await cache.match(cacheKey);
-
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-
-
-  try {
-
-    const blocks = [];
-
-    let cursor = undefined;
-
-
-    /*
-     * Load all blocks
-     */
-
-    do {
-
-      const apiUrl =
-        new URL(
-          `https://api.notion.com/v1/blocks/${cleanPageId}/children`
-        );
-
-      apiUrl.searchParams.set(
-        "page_size",
-        "100"
-      );
-
-      if (cursor) {
-
-        apiUrl.searchParams.set(
-          "start_cursor",
-          cursor
-        );
-
-      }
-
-
-      const response =
-        await fetch(
-          apiUrl.toString(),
-          {
-            method: "GET",
-
-            headers: {
-              "Authorization":
-                `Bearer ${env.NOTION_TOKEN}`,
-
-              "Notion-Version":
-                NOTION_VERSION
+            if (startCursor) {
+                body.start_cursor =
+                    startCursor;
             }
-          }
+
+
+            const response =
+                await fetch(
+                    `https://api.notion.com/v1/data_sources/${DATA_SOURCE_ID}/query`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Authorization":
+                                `Bearer ${env.NOTION_TOKEN}`,
+
+                            "Notion-Version":
+                                NOTION_VERSION,
+
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(body)
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                const text =
+                    await response.text();
+
+                throw new Error(
+                    `Notion API ${response.status}: ${text}`
+                );
+            }
+
+
+            const data =
+                await response.json();
+
+
+            pages.push(
+                ...(data.results || [])
+            );
+
+
+            startCursor =
+                data.has_more
+                    ? data.next_cursor
+                    : null;
+
+
+        } while (startCursor);
+
+
+        const events =
+            pages
+                .map(convertPageToEvent)
+                .filter(event => event.Date);
+
+
+        const response =
+            jsonResponse(events);
+
+
+        response.headers.set(
+            "Cache-Control",
+            `public, max-age=${CACHE_TTL}`
         );
 
 
-      if (!response.ok) {
+        ctx.waitUntil(
+            cache.put(
+                cacheKey,
+                response.clone()
+            )
+        );
 
-        const errorText =
-          await response.text();
+
+        return response;
+
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load events:",
+            error
+        );
+
 
         return jsonResponse(
-          {
-            error:
-              "Failed to load Notion page content",
-
-            status:
-              response.status,
-
-            details:
-              errorText
-          },
-
-          500
+            {
+                error:
+                    error?.message ||
+                    "Failed to load events"
+            },
+            500
         );
-
-      }
-
-
-      const data =
-        await response.json();
-
-
-      blocks.push(
-        ...(data.results || [])
-      );
-
-
-      cursor =
-        data.has_more
-          ? data.next_cursor
-          : undefined;
-
-
-    } while (cursor);
-
-
-    /*
-     * Convert Notion blocks to HTML
-     */
-
-    const content =
-      blocks
-        .map(
-          block =>
-            notionBlockToHTML(block)
-        )
-        .filter(Boolean)
-        .join("");
-
-
-    const result = {
-      content
-    };
-
-
-    const response =
-      new Response(
-        JSON.stringify(
-          result,
-          null,
-          2
-        ),
-        {
-          status: 200,
-
-          headers: {
-            "Content-Type":
-              "application/json; charset=utf-8",
-
-            "Cache-Control":
-              `public, max-age=${CACHE_TTL}`
-          }
-        }
-      );
-
-
-    /*
-     * Store in Cloudflare Cache
-     */
-
-    ctx.waitUntil(
-      cache.put(
-        cacheKey,
-        response.clone()
-      )
-    );
-
-
-    return response;
-
-
-  } catch (error) {
-
-    return jsonResponse(
-      {
-        error:
-          "Failed to load page content",
-
-        details:
-          error.message
-      },
-
-      500
-    );
-
-  }
-
-}
-
-
-
-// =========================================================
-// NOTION BLOCK → HTML
-// =========================================================
-
-function notionBlockToHTML(block) {
-
-  if (!block) {
-    return "";
-  }
-
-
-  const type =
-    block.type;
-
-
-  const data =
-    block[type];
-
-
-  if (!data) {
-    return "";
-  }
-
-
-  switch (type) {
-
-
-    // =====================================================
-    // Paragraph
-    // =====================================================
-
-    case "paragraph":
-
-      return renderRichText(
-        data.rich_text
-      )
-        ? `<p>${renderRichText(
-            data.rich_text
-          )}</p>`
-        : "";
-
-
-    // =====================================================
-    // Headings
-    // =====================================================
-
-    case "heading_1":
-
-      return `
-        <h3>
-          ${renderRichText(
-            data.rich_text
-          )}
-        </h3>
-      `;
-
-
-    case "heading_2":
-
-      return `
-        <h4>
-          ${renderRichText(
-            data.rich_text
-          )}
-        </h4>
-      `;
-
-
-    case "heading_3":
-
-      return `
-        <h5>
-          ${renderRichText(
-            data.rich_text
-          )}
-        </h5>
-      `;
-
-
-    // =====================================================
-    // Bulleted List
-    // =====================================================
-
-    case "bulleted_list_item":
-
-      return `
-        <li>
-          ${renderRichText(
-            data.rich_text
-          )}
-        </li>
-      `;
-
-
-    // =====================================================
-    // Numbered List
-    // =====================================================
-
-    case "numbered_list_item":
-
-      return `
-        <li>
-          ${renderRichText(
-            data.rich_text
-          )}
-        </li>
-      `;
-
-
-    // =====================================================
-    // Quote
-    // =====================================================
-
-    case "quote":
-
-      return `
-        <blockquote>
-          ${renderRichText(
-            data.rich_text
-          )}
-        </blockquote>
-      `;
-
-
-    // =====================================================
-    // Callout
-    // =====================================================
-
-    case "callout":
-
-      return `
-        <div class="notion-callout">
-          ${data.icon?.emoji
-            ? `<span class="notion-callout-icon">
-                ${escapeHTML(
-                  data.icon.emoji
-                )}
-              </span>`
-            : ""
-          }
-
-          <div>
-            ${renderRichText(
-              data.rich_text
-            )}
-          </div>
-        </div>
-      `;
-
-
-    // =====================================================
-    // Divider
-    // =====================================================
-
-    case "divider":
-
-      return `
-        <hr>
-      `;
-
-
-    // =====================================================
-    // Image
-    // =====================================================
-
-    case "image": {
-
-      let imageUrl = null;
-
-      if (
-        data.type === "external"
-      ) {
-
-        imageUrl =
-          data.external?.url || null;
-
-      }
-
-      else if (
-        data.type === "file"
-      ) {
-
-        imageUrl =
-          data.file?.url || null;
-
-      }
-
-
-      if (!imageUrl) {
-        return "";
-      }
-
-
-      const caption =
-        renderRichText(
-          data.caption
-        );
-
-
-      return `
-        <figure class="notion-image">
-
-          <img
-            src="${escapeAttribute(
-              imageUrl
-            )}"
-            alt="${escapeAttribute(
-              stripHTML(caption)
-            )}"
-            loading="lazy"
-          >
-
-          ${
-            caption
-              ? `<figcaption>
-                  ${caption}
-                </figcaption>`
-              : ""
-          }
-
-        </figure>
-      `;
     }
-
-
-    // =====================================================
-    // Bookmark
-    // =====================================================
-
-    case "bookmark":
-
-      if (!data.url) {
-        return "";
-      }
-
-      return `
-        <p>
-          <a
-            href="${escapeAttribute(
-              data.url
-            )}"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            ${escapeHTML(
-              data.caption?.[0]?.plain_text ||
-              data.url
-            )}
-          </a>
-        </p>
-      `;
-
-
-    // =====================================================
-    // Link Preview
-    // =====================================================
-
-    case "link_preview":
-
-      if (!data.url) {
-        return "";
-      }
-
-      return `
-        <p>
-          <a
-            href="${escapeAttribute(
-              data.url
-            )}"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            ${escapeHTML(
-              data.url
-            )}
-          </a>
-        </p>
-      `;
-
-
-    // =====================================================
-    // Code
-    // =====================================================
-
-    case "code":
-
-      return `
-        <pre><code>
-${escapeHTML(
-  data.rich_text
-    ?.map(
-      item =>
-        item.plain_text || ""
-    )
-    .join("") || ""
-)}
-        </code></pre>
-      `;
-
-
-    // =====================================================
-    // To-do
-    // =====================================================
-
-    case "to_do":
-
-      return `
-        <div class="notion-todo">
-          <input
-            type="checkbox"
-            ${data.checked ? "checked" : ""}
-            disabled
-          >
-
-          <span>
-            ${renderRichText(
-              data.rich_text
-            )}
-          </span>
-        </div>
-      `;
-
-
-    // =====================================================
-    // Unsupported block
-    // =====================================================
-
-    default:
-
-      return "";
-  }
-
 }
 
 
-
-// =========================================================
-// RENDER NOTION RICH TEXT
-// =========================================================
-
-function renderRichText(
-  richText
-) {
-
-  if (!Array.isArray(richText)) {
-    return "";
-  }
-
-
-  return richText
-    .map(item => {
-
-      let text =
-        escapeHTML(
-          item.plain_text || ""
-        );
-
-
-      const annotations =
-        item.annotations || {};
-
-
-      if (
-        annotations.code
-      ) {
-
-        text =
-          `<code>${text}</code>`;
-
-      }
-
-
-      if (
-        annotations.bold
-      ) {
-
-        text =
-          `<strong>${text}</strong>`;
-
-      }
-
-
-      if (
-        annotations.italic
-      ) {
-
-        text =
-          `<em>${text}</em>`;
-
-      }
-
-
-      if (
-        annotations.strikethrough
-      ) {
-
-        text =
-          `<del>${text}</del>`;
-
-      }
-
-
-      if (
-        annotations.underline
-      ) {
-
-        text =
-          `<u>${text}</u>`;
-
-      }
-
-
-      if (
-        item.href
-      ) {
-
-        text =
-          `<a
-            href="${escapeAttribute(
-              item.href
-            )}"
-            target="_blank"
-            rel="noopener noreferrer"
-          >${text}</a>`;
-
-      }
-
-
-      return text;
-
-    })
-    .join("");
-
-}
-
-
-
-// =========================================================
-// CONVERT PAGE TO EVENT
-// =========================================================
+/* =========================================================
+   CONVERT EVENT
+========================================================= */
 
 function convertPageToEvent(page) {
 
-  console.log(
-    "NOTION COVER:",
-    JSON.stringify(page.cover)
-  );
+    return {
 
+        PageID:
+            page.id || null,
 
-  const properties =
-    page.properties || {};
+        Name:
+            getPropertyValue(
+                page.properties?.Name
+            ),
 
+        Date:
+            getPropertyValue(
+                page.properties?.Date
+            ),
 
-  return {
+        /*
+         * Keep database Image property
+         * if available.
+         *
+         * Page content images are handled separately
+         * through /data/content/{PageID}.
+         */
+        Image:
+            getPropertyValue(
+                page.properties?.Image
+            ) ||
+            page.cover?.file?.url ||
+            page.cover?.external?.url ||
+            null,
 
-    /*
-     * IMPORTANT
-     *
-     * Keep the Notion Page ID so the frontend
-     * can request its content later.
-     */
+        Hashtag:
+            getPropertyValue(
+                page.properties?.Hashtag
+            ),
 
-    PageID:
-      page.id || null,
+        KW:
+            getPropertyValue(
+                page.properties?.KW
+            ),
 
+        Location:
+            getPropertyValue(
+                page.properties?.Location
+            ),
 
-    Name:
-      getPropertyValue(
-        properties.Name
-      ),
+        NAMTANFILM:
+            getPropertyValue(
+                page.properties?.NAMTANFILM
+            ),
 
+        Type:
+            getPropertyValue(
+                page.properties?.Type
+            ),
 
-    Date:
-      getPropertyValue(
-        properties.Date
-      ),
+        Year:
+            getPropertyValue(
+                page.properties?.Year
+            ),
 
-
-    Image:
-      page.cover?.file?.url || null,
-
-
-    Hashtag:
-      getPropertyValue(
-        properties.Hashtag
-      ),
-
-
-    KW:
-      getPropertyValue(
-        properties.KW
-      ),
-
-
-    Location:
-      getPropertyValue(
-        properties.Location
-      ),
-
-
-    NAMTANFILM:
-      getPropertyValue(
-        properties.NAMTANFILM
-      ),
-
-
-    Type:
-      getPropertyValue(
-        properties.Type
-      ),
-
-
-    Year:
-      getPropertyValue(
-        properties.Year
-      )
-
-  };
-
+        Link:
+            getPropertyValue(
+                page.properties?.Link
+            )
+    };
 }
 
 
+/* =========================================================
+   NOTION PROPERTY VALUE
+========================================================= */
 
-// =========================================================
-// NOTION PROPERTY VALUE
-// =========================================================
+function getPropertyValue(property) {
 
-function getPropertyValue(
-  property
-) {
-
-  if (!property) {
-    return null;
-  }
-
-
-  switch (
-    property.type
-  ) {
-
-
-    case "title":
-
-      return (
-        property.title
-          ?.map(
-            item =>
-              item.plain_text
-          )
-          .join("")
-        || null
-      );
-
-
-    case "rich_text":
-
-      return (
-        property.rich_text
-          ?.map(
-            item =>
-              item.plain_text
-          )
-          .join("")
-        || null
-      );
-
-
-    case "select":
-
-      return (
-        property.select?.name
-        || null
-      );
-
-
-    case "multi_select":
-
-      return (
-        property.multi_select
-          ?.map(
-            item =>
-              item.name
-          )
-        || []
-      );
-
-
-    case "date":
-
-      if (
-        !property.date?.start
-      ) {
+    if (!property) {
         return null;
-      }
+    }
 
 
-      return property.date.end
-        ? `${property.date.start} → ${property.date.end}`
-        : property.date.start;
+    switch (property.type) {
+
+        case "title":
+            return richTextToPlainText(
+                property.title
+            );
 
 
-    case "number":
-
-      return (
-        property.number ?? null
-      );
-
-
-    case "checkbox":
-
-      return property.checkbox;
+        case "rich_text":
+            return richTextToPlainText(
+                property.rich_text
+            );
 
 
-    case "url":
-
-      return (
-        property.url || null
-      );
+        case "select":
+            return property.select?.name || null;
 
 
-    case "email":
-
-      return (
-        property.email || null
-      );
-
-
-    case "formula":
-
-      return getFormulaValue(
-        property.formula
-      );
+        case "multi_select":
+            return (
+                property.multi_select || []
+            ).map(item => item.name);
 
 
-    default:
+        case "date":
+            return property.date?.start || null;
 
-      return null;
 
-  }
+        case "number":
+            return property.number;
 
+
+        case "checkbox":
+            return property.checkbox;
+
+
+        case "url":
+            return property.url;
+
+
+        case "email":
+            return property.email;
+
+
+        case "formula":
+
+            if (
+                property.formula?.type ===
+                "string"
+            ) {
+                return property.formula.string;
+            }
+
+            if (
+                property.formula?.type ===
+                "number"
+            ) {
+                return property.formula.number;
+            }
+
+            if (
+                property.formula?.type ===
+                "boolean"
+            ) {
+                return property.formula.boolean;
+            }
+
+            if (
+                property.formula?.type ===
+                "date"
+            ) {
+                return property.formula.date?.start;
+            }
+
+            return null;
+
+
+        case "files":
+
+            return (
+                property.files || []
+            ).map(file => {
+
+                if (file.type === "file") {
+                    return file.file?.url;
+                }
+
+                if (file.type === "external") {
+                    return file.external?.url;
+                }
+
+                return null;
+
+            }).filter(Boolean);
+
+
+        default:
+            return null;
+    }
 }
 
 
+/* =========================================================
+   RICH TEXT
+========================================================= */
 
-// =========================================================
-// FORMULA
-// =========================================================
+function richTextToPlainText(items) {
 
-function getFormulaValue(
-  formula
+    if (!Array.isArray(items)) {
+        return null;
+    }
+
+    return items
+        .map(item =>
+            item.plain_text || ""
+        )
+        .join("");
+}
+
+
+/* =========================================================
+   PAGE CONTENT
+========================================================= */
+
+async function getPageContent(
+    request,
+    env,
+    ctx,
+    pageId
 ) {
 
-  if (!formula) {
-    return null;
-  }
+    if (!env.NOTION_TOKEN) {
+        return jsonResponse(
+            {
+                error:
+                    "NOTION_TOKEN is not configured"
+            },
+            500
+        );
+    }
 
 
-  switch (
-    formula.type
-  ) {
+    const cache =
+        caches.default;
 
 
-    case "string":
-
-      return (
-        formula.string || null
-      );
-
-
-    case "number":
-
-      return (
-        formula.number ?? null
-      );
+    const cacheKey =
+        new Request(
+            new URL(
+                `/data/content/${encodeURIComponent(pageId)}`,
+                request.url
+            ),
+            request
+        );
 
 
-    case "boolean":
-
-      return formula.boolean;
-
-
-    case "date":
-
-      return (
-        formula.date?.start
-        || null
-      );
+    const cached =
+        await cache.match(cacheKey);
 
 
-    default:
+    if (cached) {
+        return cached;
+    }
 
-      return null;
 
-  }
+    try {
 
+        const blocks =
+            await getAllBlocks(
+                env,
+                pageId
+            );
+
+
+        const html =
+            renderBlocks(blocks);
+
+
+        const response =
+            jsonResponse({
+                pageId,
+                content: html
+            });
+
+
+        response.headers.set(
+            "Cache-Control",
+            `public, max-age=${CACHE_TTL}`
+        );
+
+
+        ctx.waitUntil(
+            cache.put(
+                cacheKey,
+                response.clone()
+            )
+        );
+
+
+        return response;
+
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load Notion content:",
+            error
+        );
+
+
+        return jsonResponse(
+            {
+                error:
+                    error?.message ||
+                    "Failed to load Notion content"
+            },
+            500
+        );
+    }
 }
 
 
+/* =========================================================
+   GET ALL BLOCKS
+========================================================= */
 
-// =========================================================
-// ESCAPE HTML
-// =========================================================
-
-function escapeHTML(
-  value
+async function getAllBlocks(
+    env,
+    blockId
 ) {
 
-  return String(
-    value ?? ""
-  )
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
+    const allBlocks = [];
 
+    let cursor = undefined;
+
+
+    do {
+
+        const url =
+            new URL(
+                `https://api.notion.com/v1/blocks/${blockId}/children`
+            );
+
+
+        url.searchParams.set(
+            "page_size",
+            "100"
+        );
+
+
+        if (cursor) {
+            url.searchParams.set(
+                "start_cursor",
+                cursor
+            );
+        }
+
+
+        const response =
+            await fetch(
+                url,
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${env.NOTION_TOKEN}`,
+
+                        "Notion-Version":
+                            NOTION_VERSION
+                    }
+                }
+            );
+
+
+        if (!response.ok) {
+
+            const text =
+                await response.text();
+
+            throw new Error(
+                `Notion blocks API ${response.status}: ${text}`
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        for (
+            const block
+            of data.results || []
+        ) {
+
+            allBlocks.push(block);
+
+
+            /*
+             * IMPORTANT:
+             *
+             * Notion Grid uses nested
+             * column_list / column blocks.
+             *
+             * Recursively fetch children.
+             */
+            if (block.has_children) {
+
+                const children =
+                    await getAllBlocks(
+                        env,
+                        block.id
+                    );
+
+
+                block._children =
+                    children;
+            }
+        }
+
+
+        cursor =
+            data.has_more
+                ? data.next_cursor
+                : null;
+
+
+    } while (cursor);
+
+
+    return allBlocks;
 }
 
 
+/* =========================================================
+   RENDER BLOCKS
+========================================================= */
 
-// =========================================================
-// ESCAPE ATTRIBUTE
-// =========================================================
+function renderBlocks(blocks) {
 
-function escapeAttribute(
-  value
-) {
+    if (!Array.isArray(blocks)) {
+        return "";
+    }
 
-  return escapeHTML(
-    value
-  );
 
+    let html = "";
+
+    let currentList = null;
+
+
+    const closeList = () => {
+
+        if (currentList === "bulleted") {
+            html += "</ul>";
+        }
+
+        if (currentList === "numbered") {
+            html += "</ol>";
+        }
+
+        currentList = null;
+    };
+
+
+    for (
+        const block
+        of blocks
+    ) {
+
+        const type =
+            block.type;
+
+
+        /*
+         * LIST
+         */
+
+        if (
+            type ===
+            "bulleted_list_item"
+        ) {
+
+            if (
+                currentList !==
+                "bulleted"
+            ) {
+
+                closeList();
+
+                html += "<ul>";
+
+                currentList =
+                    "bulleted";
+            }
+
+
+            html +=
+                `<li>${renderRichText(
+                    block.bulleted_list_item?.rich_text
+                )}`;
+
+
+            if (
+                block._children?.length
+            ) {
+
+                html +=
+                    renderBlocks(
+                        block._children
+                    );
+            }
+
+
+            html += "</li>";
+
+            continue;
+        }
+
+
+        if (
+            type ===
+            "numbered_list_item"
+        ) {
+
+            if (
+                currentList !==
+                "numbered"
+            ) {
+
+                closeList();
+
+                html += "<ol>";
+
+                currentList =
+                    "numbered";
+            }
+
+
+            html +=
+                `<li>${renderRichText(
+                    block.numbered_list_item?.rich_text
+                )}`;
+
+
+            if (
+                block._children?.length
+            ) {
+
+                html +=
+                    renderBlocks(
+                        block._children
+                    );
+            }
+
+
+            html += "</li>";
+
+            continue;
+        }
+
+
+        closeList();
+
+
+        /*
+         * PARAGRAPH
+         */
+
+        if (type === "paragraph") {
+
+            const text =
+                renderRichText(
+                    block.paragraph?.rich_text
+                );
+
+
+            if (text.trim()) {
+
+                html +=
+                    `<p>${text}</p>`;
+            }
+
+            continue;
+        }
+
+
+        /*
+         * HEADINGS
+         */
+
+        if (type === "heading_1") {
+
+            html +=
+                `<h1>${renderRichText(
+                    block.heading_1?.rich_text
+                )}</h1>`;
+
+            continue;
+        }
+
+
+        if (type === "heading_2") {
+
+            html +=
+                `<h2>${renderRichText(
+                    block.heading_2?.rich_text
+                )}</h2>`;
+
+            continue;
+        }
+
+
+        if (type === "heading_3") {
+
+            html +=
+                `<h3>${renderRichText(
+                    block.heading_3?.rich_text
+                )}</h3>`;
+
+            continue;
+        }
+
+
+        /*
+         * QUOTE
+         */
+
+        if (type === "quote") {
+
+            html +=
+                `<blockquote>${renderRichText(
+                    block.quote?.rich_text
+                )}</blockquote>`;
+
+            continue;
+        }
+
+
+        /*
+         * CALLOUT
+         */
+
+        if (type === "callout") {
+
+            const callout =
+                block.callout;
+
+
+            const icon =
+                callout?.icon?.emoji ||
+                "";
+
+
+            html += `
+                <div class="notion-callout">
+                    <div class="notion-callout-icon">
+                        ${escapeHTML(icon)}
+                    </div>
+
+                    <div>
+                        ${renderRichText(
+                            callout?.rich_text
+                        )}
+                    </div>
+                </div>
+            `;
+
+            continue;
+        }
+
+
+        /*
+         * DIVIDER
+         */
+
+        if (type === "divider") {
+
+            html += "<hr>";
+
+            continue;
+        }
+
+
+        /*
+         * IMAGE
+         */
+
+        if (type === "image") {
+
+            html +=
+                renderImageBlock(
+                    block.image
+                );
+
+            continue;
+        }
+
+
+        /*
+         * VIDEO
+         */
+
+        if (type === "video") {
+
+            html +=
+                renderVideoBlock(
+                    block.video
+                );
+
+            continue;
+        }
+
+
+        /*
+         * EMBED
+         */
+
+        if (type === "embed") {
+
+            const url =
+                block.embed?.url;
+
+
+            if (url) {
+
+                html += `
+                    <div class="notion-embed">
+                        <a
+                            href="${escapeAttribute(url)}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            View embedded content →
+                        </a>
+                    </div>
+                `;
+            }
+
+            continue;
+        }
+
+
+        /*
+         * BOOKMARK
+         */
+
+        if (type === "bookmark") {
+
+            const url =
+                block.bookmark?.url;
+
+
+            if (url) {
+
+                html += `
+                    <div class="notion-bookmark">
+                        <a
+                            href="${escapeAttribute(url)}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            ${escapeHTML(url)}
+                        </a>
+                    </div>
+                `;
+            }
+
+            continue;
+        }
+
+
+        /*
+         * CODE
+         */
+
+        if (type === "code") {
+
+            const code =
+                block.code?.rich_text
+                    ?.map(item =>
+                        item.plain_text || ""
+                    )
+                    .join("") || "";
+
+
+            html += `
+                <pre><code>${escapeHTML(
+                    code
+                )}</code></pre>
+            `;
+
+            continue;
+        }
+
+
+        /*
+         * TO DO
+         */
+
+        if (type === "to_do") {
+
+            const todo =
+                block.to_do;
+
+
+            html += `
+                <div class="notion-todo">
+                    <input
+                        type="checkbox"
+                        disabled
+                        ${todo?.checked ? "checked" : ""}
+                    >
+                    <span>
+                        ${renderRichText(
+                            todo?.rich_text
+                        )}
+                    </span>
+                </div>
+            `;
+
+            continue;
+        }
+
+
+        /*
+         * COLUMN LIST / COLUMN
+         *
+         * This is the important part
+         * for Notion Grid.
+         */
+
+        if (
+            type ===
+            "column_list"
+        ) {
+
+            html += `
+                <div class="notion-grid">
+                    ${renderBlocks(
+                        block._children || []
+                    )}
+                </div>
+            `;
+
+            continue;
+        }
+
+
+        if (
+            type ===
+            "column"
+        ) {
+
+            html += `
+                <div class="notion-column">
+                    ${renderBlocks(
+                        block._children || []
+                    )}
+                </div>
+            `;
+
+            continue;
+        }
+
+
+        /*
+         * TOGGLE / OTHER NESTED BLOCKS
+         */
+
+        if (
+            block._children?.length
+        ) {
+
+            html +=
+                renderBlocks(
+                    block._children
+                );
+        }
+    }
+
+
+    closeList();
+
+
+    return html;
 }
 
 
+/* =========================================================
+   IMAGE BLOCK
+========================================================= */
 
-// =========================================================
-// STRIP HTML
-// =========================================================
+function renderImageBlock(image) {
 
-function stripHTML(
-  value
-) {
+    if (!image) {
+        return "";
+    }
 
-  return String(
-    value ?? ""
-  ).replace(
-    /<[^>]*>/g,
-    ""
-  );
 
+    let url = null;
+
+
+    if (image.type === "file") {
+        url =
+            image.file?.url;
+    }
+
+
+    if (
+        image.type ===
+        "external"
+    ) {
+        url =
+            image.external?.url;
+    }
+
+
+    if (!url) {
+        return "";
+    }
+
+
+    const caption =
+        renderRichText(
+            image.caption
+        );
+
+
+    return `
+        <figure
+            class="notion-media-item notion-image-item"
+        >
+            <img
+                src="${escapeAttribute(url)}"
+                alt="${escapeAttribute(
+                    stripHTML(caption) ||
+                    "Event image"
+                )}"
+                loading="lazy"
+                decoding="async"
+                data-lightbox="image"
+            >
+
+            ${
+                caption
+                    ? `<figcaption>${caption}</figcaption>`
+                    : ""
+            }
+        </figure>
+    `;
 }
 
 
+/* =========================================================
+   VIDEO BLOCK
+========================================================= */
 
-// =========================================================
-// JSON RESPONSE
-// =========================================================
+function renderVideoBlock(video) {
+
+    if (!video) {
+        return "";
+    }
+
+
+    let url = null;
+
+
+    if (video.type === "file") {
+        url =
+            video.file?.url;
+    }
+
+
+    if (
+        video.type ===
+        "external"
+    ) {
+        url =
+            video.external?.url;
+    }
+
+
+    if (!url) {
+        return "";
+    }
+
+
+    return `
+        <figure
+            class="notion-media-item notion-video-item"
+        >
+            <video
+                controls
+                preload="metadata"
+                playsinline
+                src="${escapeAttribute(url)}"
+            ></video>
+        </figure>
+    `;
+}
+
+
+/* =========================================================
+   RICH TEXT → HTML
+========================================================= */
+
+function renderRichText(items) {
+
+    if (!Array.isArray(items)) {
+        return "";
+    }
+
+
+    return items
+        .map(item => {
+
+            let text =
+                escapeHTML(
+                    item.plain_text || ""
+                );
+
+
+            const annotations =
+                item.annotations || {};
+
+
+            if (
+                annotations.code
+            ) {
+                text =
+                    `<code>${text}</code>`;
+            }
+
+
+            if (
+                annotations.bold
+            ) {
+                text =
+                    `<strong>${text}</strong>`;
+            }
+
+
+            if (
+                annotations.italic
+            ) {
+                text =
+                    `<em>${text}</em>`;
+            }
+
+
+            if (
+                annotations.strikethrough
+            ) {
+                text =
+                    `<s>${text}</s>`;
+            }
+
+
+            if (
+                annotations.underline
+            ) {
+                text =
+                    `<u>${text}</u>`;
+            }
+
+
+            const href =
+                item.href ||
+                item.text?.link?.url ||
+                null;
+
+
+            if (href) {
+
+                text =
+                    `<a
+                        href="${escapeAttribute(href)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >${text}</a>`;
+            }
+
+
+            return text;
+
+        })
+        .join("");
+}
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function stripHTML(value) {
+
+    return String(value || "")
+        .replace(
+            /<[^>]*>/g,
+            ""
+        );
+}
+
+
+function escapeHTML(value) {
+
+    return String(value ?? "")
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+}
+
+
+function escapeAttribute(value) {
+    return escapeHTML(value);
+}
+
 
 function jsonResponse(
-  data,
-  status = 200
+    data,
+    status = 200
 ) {
 
-  return new Response(
-    JSON.stringify(
-      data,
-      null,
-      2
-    ),
-
-    {
-      status,
-
-      headers: {
-        "Content-Type":
-          "application/json; charset=utf-8",
-
-        "Cache-Control":
-          "no-store"
-      }
-    }
-  );
-
-}
+    return new Response(
+        JSON.stringify(data),
