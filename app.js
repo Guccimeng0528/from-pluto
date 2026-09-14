@@ -8,27 +8,6 @@ loadHeader();
 loadFooter();
 
 /* =========================================================
-   SAMPLE DATA
-========================================================= */
-
-const SAMPLE_EVENTS = [
-    {
-        Name: "PRO-TEEN SCHOOL TOUR 2025",
-        Date: "August 1, 2025",
-        Hashtag: null,
-        KW: null,
-        Location: null,
-        NAMTANFILM: ["NAMTAN", "FILM"],
-        Type: "Event",
-        Year: 2025,
-        Image: null
-    }
-];
-
-loadHeader();
-loadFooter();
-
-/* =========================================================
    GLOBAL STATE
 ========================================================= */
 
