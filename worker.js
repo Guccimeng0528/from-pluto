@@ -11,7 +11,7 @@ export default {
     // Notion Events API
     // =====================================================
 
-    if (url.pathname === "/api/events") {
+    if (url.pathname === "/data/events") {
       return getSchedule(request, env, ctx);
     }
 
@@ -68,7 +68,7 @@ async function getSchedule(request, env, ctx) {
   /*
    * Cloudflare Cache
    *
-   * The cache key is based on /api/events.
+   * The cache key is based on /data/events.
    * This means multiple visitors can share
    * the same cached Notion data.
    */
@@ -76,7 +76,7 @@ async function getSchedule(request, env, ctx) {
   const cache = caches.default;
 
   const cacheUrl = new URL(
-    "/api/events",
+    "/data/events",
     request.url
   );
 
