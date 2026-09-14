@@ -661,8 +661,15 @@ async function getAllBlocks(
 }
 
 
+
 /* =========================================================
    RENDER BLOCKS
+   Supports:
+   - normal blocks
+   - nested blocks
+   - column_list / column
+   - multiple columns of images
+   - Masonry media grid
 ========================================================= */
 
 function renderBlocks(blocks) {
@@ -671,11 +678,8 @@ function renderBlocks(blocks) {
         return "";
     }
 
-
     let html = "";
-
     let currentList = null;
-
 
     const closeList = () => {
 
@@ -691,22 +695,439 @@ function renderBlocks(blocks) {
     };
 
 
-    for (
-        const block
-        of blocks
-    ) {
+    /*
+     * Render a normal block.
+     */
+    const renderSingleBlock = (block) => {
+
+        if (!block) {
+            return "";
+        }
+
+        const type = block.type;
+
+
+        /* =========================
+           IMAGE
+        ========================= */
+
+        if (type === "image") {
+
+            return renderImageBlock(
+                block.image
+            );
+        }
+
+
+        /* =========================
+           VIDEO
+        ========================= */
+
+        if (type === "video") {
+
+            return renderVideoBlock(
+                block.video
+            );
+        }
+
+
+        /* =========================
+           PARAGRAPH
+        ========================= */
+
+        if (type === "paragraph") {
+
+            const text =
+                renderRichText(
+                    block.paragraph?.rich_text
+                );
+
+            return text.trim()
+                ? `<p>${text}</p>`
+                : "";
+        }
+
+
+        /* =========================
+           HEADINGS
+        ========================= */
+
+        if (type === "heading_1") {
+
+            return `
+                <h1>
+                    ${renderRichText(
+                        block.heading_1?.rich_text
+                    )}
+                </h1>
+            `;
+        }
+
+
+        if (type === "heading_2") {
+
+            return `
+                <h2>
+                    ${renderRichText(
+                        block.heading_2?.rich_text
+                    )}
+                </h2>
+            `;
+        }
+
+
+        if (type === "heading_3") {
+
+            return `
+                <h3>
+                    ${renderRichText(
+                        block.heading_3?.rich_text
+                    )}
+                </h3>
+            `;
+        }
+
+
+        /* =========================
+           QUOTE
+        ========================= */
+
+        if (type === "quote") {
+
+            return `
+                <blockquote>
+                    ${renderRichText(
+                        block.quote?.rich_text
+                    )}
+                </blockquote>
+            `;
+        }
+
+
+        /* =========================
+           CALLOUT
+        ========================= */
+
+        if (type === "callout") {
+
+            const callout =
+                block.callout;
+
+            const icon =
+                callout?.icon?.emoji || "";
+
+            return `
+                <div class="notion-callout">
+
+                    <div class="notion-callout-icon">
+                        ${escapeHTML(icon)}
+                    </div>
+
+                    <div>
+                        ${renderRichText(
+                            callout?.rich_text
+                        )}
+                    </div>
+
+                </div>
+            `;
+        }
+
+
+        /* =========================
+           DIVIDER
+        ========================= */
+
+        if (type === "divider") {
+            return "<hr>";
+        }
+
+
+        /* =========================
+           EMBED
+        ========================= */
+
+        if (type === "embed") {
+
+            const url =
+                block.embed?.url;
+
+            if (!url) {
+                return "";
+            }
+
+            return `
+                <div class="notion-embed">
+
+                    <a
+                        href="${escapeAttribute(url)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        View embedded content →
+                    </a>
+
+                </div>
+            `;
+        }
+
+
+        /* =========================
+           BOOKMARK
+        ========================= */
+
+        if (type === "bookmark") {
+
+            const url =
+                block.bookmark?.url;
+
+            if (!url) {
+                return "";
+            }
+
+            return `
+                <div class="notion-bookmark">
+
+                    <a
+                        href="${escapeAttribute(url)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        ${escapeHTML(url)}
+                    </a>
+
+                </div>
+            `;
+        }
+
+
+        /* =========================
+           CODE
+        ========================= */
+
+        if (type === "code") {
+
+            const code =
+                block.code?.rich_text
+                    ?.map(item =>
+                        item.plain_text || ""
+                    )
+                    .join("") || "";
+
+            return `
+                <pre>
+                    <code>
+                        ${escapeHTML(code)}
+                    </code>
+                </pre>
+            `;
+        }
+
+
+        /* =========================
+           TO DO
+        ========================= */
+
+        if (type === "to_do") {
+
+            const todo =
+                block.to_do;
+
+            return `
+                <div class="notion-todo">
+
+                    <input
+                        type="checkbox"
+                        disabled
+                        ${todo?.checked ? "checked" : ""}
+                    >
+
+                    <span>
+                        ${renderRichText(
+                            todo?.rich_text
+                        )}
+                    </span>
+
+                </div>
+            `;
+        }
+
+
+        /* =========================
+           NESTED BLOCK
+        ========================= */
+
+        if (
+            block._children &&
+            block._children.length
+        ) {
+
+            return renderBlocks(
+                block._children
+            );
+        }
+
+
+        return "";
+    };
+
+
+    /*
+     * Collect ALL media blocks recursively.
+     *
+     * This is the important fix.
+     *
+     * Example:
+     *
+     * column_list
+     *   ├─ column
+     *   │   ├─ image
+     *   │   └─ image
+     *   │
+     *   ├─ column
+     *   │   ├─ image
+     *   │   └─ image
+     *   │
+     *   └─ column
+     *       ├─ image
+     *       └─ image
+     *
+     * becomes ONE media grid.
+     */
+
+    const collectMediaBlocks = (items) => {
+
+        const media = [];
+
+        if (!Array.isArray(items)) {
+            return media;
+        }
+
+        for (const item of items) {
+
+            if (!item) {
+                continue;
+            }
+
+            if (
+                item.type === "image" ||
+                item.type === "video"
+            ) {
+
+                media.push(item);
+
+                continue;
+            }
+
+            if (
+                item._children &&
+                item._children.length
+            ) {
+
+                media.push(
+                    ...collectMediaBlocks(
+                        item._children
+                    )
+                );
+            }
+        }
+
+        return media;
+    };
+
+
+    /*
+     * Check whether a column_list contains
+     * only media / nested columns.
+     *
+     * If yes, we can safely flatten everything
+     * into one Masonry grid.
+     */
+
+    const isMediaOnlyColumnList = (items) => {
+
+        if (!Array.isArray(items)) {
+            return false;
+        }
+
+        for (const item of items) {
+
+            if (!item) {
+                continue;
+            }
+
+            const type =
+                item.type;
+
+            if (
+                type === "column"
+            ) {
+
+                if (
+                    !isMediaOnlyColumnList(
+                        item._children || []
+                    )
+                ) {
+                    return false;
+                }
+
+                continue;
+            }
+
+            if (
+                type === "column_list"
+            ) {
+
+                if (
+                    !isMediaOnlyColumnList(
+                        item._children || []
+                    )
+                ) {
+                    return false;
+                }
+
+                continue;
+            }
+
+            if (
+                type === "image" ||
+                type === "video"
+            ) {
+                continue;
+            }
+
+            /*
+             * Anything else means this is
+             * not a pure media grid.
+             */
+
+            return false;
+        }
+
+        return true;
+    };
+
+
+    /*
+     * Main loop
+     */
+
+    for (const block of blocks) {
+
+        if (!block) {
+            continue;
+        }
 
         const type =
             block.type;
 
 
-        /*
-         * LIST
-         */
+        /* =========================
+           BULLETED LIST
+        ========================= */
 
         if (
-            type ===
-            "bulleted_list_item"
+            type === "bulleted_list_item"
         ) {
 
             if (
@@ -722,12 +1143,12 @@ function renderBlocks(blocks) {
                     "bulleted";
             }
 
-
-            html +=
-                `<li>${renderRichText(
-                    block.bulleted_list_item?.rich_text
-                )}`;
-
+            html += `
+                <li>
+                    ${renderRichText(
+                        block.bulleted_list_item?.rich_text
+                    )}
+            `;
 
             if (
                 block._children?.length
@@ -739,16 +1160,18 @@ function renderBlocks(blocks) {
                     );
             }
 
-
             html += "</li>";
 
             continue;
         }
 
 
+        /* =========================
+           NUMBERED LIST
+        ========================= */
+
         if (
-            type ===
-            "numbered_list_item"
+            type === "numbered_list_item"
         ) {
 
             if (
@@ -764,12 +1187,12 @@ function renderBlocks(blocks) {
                     "numbered";
             }
 
-
-            html +=
-                `<li>${renderRichText(
-                    block.numbered_list_item?.rich_text
-                )}`;
-
+            html += `
+                <li>
+                    ${renderRichText(
+                        block.numbered_list_item?.rich_text
+                    )}
+            `;
 
             if (
                 block._children?.length
@@ -781,7 +1204,6 @@ function renderBlocks(blocks) {
                     );
             }
 
-
             html += "</li>";
 
             continue;
@@ -791,283 +1213,90 @@ function renderBlocks(blocks) {
         closeList();
 
 
-        /*
-         * PARAGRAPH
-         */
-
-        if (type === "paragraph") {
-
-            const text =
-                renderRichText(
-                    block.paragraph?.rich_text
-                );
-
-
-            if (text.trim()) {
-
-                html +=
-                    `<p>${text}</p>`;
-            }
-
-            continue;
-        }
-
-
-        /*
-         * HEADINGS
-         */
-
-        if (type === "heading_1") {
-
-            html +=
-                `<h1>${renderRichText(
-                    block.heading_1?.rich_text
-                )}</h1>`;
-
-            continue;
-        }
-
-
-        if (type === "heading_2") {
-
-            html +=
-                `<h2>${renderRichText(
-                    block.heading_2?.rich_text
-                )}</h2>`;
-
-            continue;
-        }
-
-
-        if (type === "heading_3") {
-
-            html +=
-                `<h3>${renderRichText(
-                    block.heading_3?.rich_text
-                )}</h3>`;
-
-            continue;
-        }
-
-
-        /*
-         * QUOTE
-         */
-
-        if (type === "quote") {
-
-            html +=
-                `<blockquote>${renderRichText(
-                    block.quote?.rich_text
-                )}</blockquote>`;
-
-            continue;
-        }
-
-
-        /*
-         * CALLOUT
-         */
-
-        if (type === "callout") {
-
-            const callout =
-                block.callout;
-
-
-            const icon =
-                callout?.icon?.emoji ||
-                "";
-
-
-            html += `
-                <div class="notion-callout">
-                    <div class="notion-callout-icon">
-                        ${escapeHTML(icon)}
-                    </div>
-
-                    <div>
-                        ${renderRichText(
-                            callout?.rich_text
-                        )}
-                    </div>
-                </div>
-            `;
-
-            continue;
-        }
-
-
-        /*
-         * DIVIDER
-         */
-
-        if (type === "divider") {
-
-            html += "<hr>";
-
-            continue;
-        }
-
-
-        /*
-         * IMAGE
-         */
-
-        if (type === "image") {
-
-            html +=
-                renderImageBlock(
-                    block.image
-                );
-
-            continue;
-        }
-
-
-        /*
-         * VIDEO
-         */
-
-        if (type === "video") {
-
-            html +=
-                renderVideoBlock(
-                    block.video
-                );
-
-            continue;
-        }
-
-
-        /*
-         * EMBED
-         */
-
-        if (type === "embed") {
-
-            const url =
-                block.embed?.url;
-
-
-            if (url) {
-
-                html += `
-                    <div class="notion-embed">
-                        <a
-                            href="${escapeAttribute(url)}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            View embedded content →
-                        </a>
-                    </div>
-                `;
-            }
-
-            continue;
-        }
-
-
-        /*
-         * BOOKMARK
-         */
-
-        if (type === "bookmark") {
-
-            const url =
-                block.bookmark?.url;
-
-
-            if (url) {
-
-                html += `
-                    <div class="notion-bookmark">
-                        <a
-                            href="${escapeAttribute(url)}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            ${escapeHTML(url)}
-                        </a>
-                    </div>
-                `;
-            }
-
-            continue;
-        }
-
-
-        /*
-         * CODE
-         */
-
-        if (type === "code") {
-
-            const code =
-                block.code?.rich_text
-                    ?.map(item =>
-                        item.plain_text || ""
-                    )
-                    .join("") || "";
-
-
-            html += `
-                <pre><code>${escapeHTML(
-                    code
-                )}</code></pre>
-            `;
-
-            continue;
-        }
-
-
-        /*
-         * TO DO
-         */
-
-        if (type === "to_do") {
-
-            const todo =
-                block.to_do;
-
-
-            html += `
-                <div class="notion-todo">
-                    <input
-                        type="checkbox"
-                        disabled
-                        ${todo?.checked ? "checked" : ""}
-                    >
-                    <span>
-                        ${renderRichText(
-                            todo?.rich_text
-                        )}
-                    </span>
-                </div>
-            `;
-
-            continue;
-        }
-
-
-        /*
-         * COLUMN LIST / COLUMN
-         *
-         * This is the important part
-         * for Notion Grid.
-         */
+        /* =========================
+           COLUMN LIST
+        ========================= */
 
         if (
-            type ===
-            "column_list"
+            type === "column_list"
         ) {
+
+            const children =
+                block._children || [];
+
+
+            /*
+             * If this column_list is basically
+             * an image/video grid, flatten ALL
+             * columns into one Masonry grid.
+             */
+
+            if (
+                isMediaOnlyColumnList(
+                    children
+                )
+            ) {
+
+                const mediaBlocks =
+                    collectMediaBlocks(
+                        children
+                    );
+
+
+                if (
+                    mediaBlocks.length
+                ) {
+
+                    html += `
+                        <div class="notion-media-grid">
+                    `;
+
+                    for (
+                        const mediaBlock
+                        of mediaBlocks
+                    ) {
+
+                        if (
+                            mediaBlock.type ===
+                            "image"
+                        ) {
+
+                            html +=
+                                renderImageBlock(
+                                    mediaBlock.image
+                                );
+                        }
+
+                        else if (
+                            mediaBlock.type ===
+                            "video"
+                        ) {
+
+                            html +=
+                                renderVideoBlock(
+                                    mediaBlock.video
+                                );
+                        }
+                    }
+
+                    html += `
+                        </div>
+                    `;
+                }
+
+                continue;
+            }
+
+
+            /*
+             * Mixed content:
+             * preserve the columns instead
+             * of flattening them.
+             */
 
             html += `
                 <div class="notion-grid">
-                    ${renderBlocks(
-                        block._children || []
-                    )}
+                    ${renderBlocks(children)}
                 </div>
             `;
 
@@ -1075,10 +1304,20 @@ function renderBlocks(blocks) {
         }
 
 
+        /* =========================
+           COLUMN
+        ========================= */
+
         if (
-            type ===
-            "column"
+            type === "column"
         ) {
+
+            /*
+             * Do NOT create a separate
+             * media grid for every column.
+             *
+             * column_list handles flattening.
+             */
 
             html += `
                 <div class="notion-column">
@@ -1092,19 +1331,14 @@ function renderBlocks(blocks) {
         }
 
 
-        /*
-         * TOGGLE / OTHER NESTED BLOCKS
-         */
+        /* =========================
+           NORMAL BLOCK
+        ========================= */
 
-        if (
-            block._children?.length
-        ) {
-
-            html +=
-                renderBlocks(
-                    block._children
-                );
-        }
+        html +=
+            renderSingleBlock(
+                block
+            );
     }
 
 
@@ -1113,6 +1347,7 @@ function renderBlocks(blocks) {
 
     return html;
 }
+
 
 
 /* =========================================================
