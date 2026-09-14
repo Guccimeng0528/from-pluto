@@ -1746,22 +1746,15 @@ a {
 /* Images from Notion */
 /* =====================================================
    NOTION MEDIA MASONRY GRID
+   Desktop: 4 columns
    ===================================================== */
 
-.modal-description {
-    margin-top: 28px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-    line-height: 1.75;
-    color: var(--text);
-}
-
-
-/* Masonry container */
-
 .notion-media-grid {
-    columns: 3 220px;
+    width: 100%;
+
+    columns: 4;
     column-gap: 14px;
+
     margin: 20px 0;
 }
 
@@ -1769,8 +1762,12 @@ a {
 /* Image / Video item */
 
 .notion-media-item {
+    display: inline-block;
+    width: 100%;
+
     break-inside: avoid;
     -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
 
     position: relative;
 
@@ -1817,7 +1814,7 @@ a {
 
     border-radius: 0;
 
-    object-fit: cover;
+    object-fit: contain;
 
     transition:
         transform 0.35s ease;
@@ -2027,15 +2024,14 @@ a {
    ===================================================== */
 
 @media (max-width: 700px) {
-
     .notion-media-grid {
-        columns: 2 150px;
-        column-gap: 10px;
+        columns: 3;
+        column-gap: 8px;
     }
 
     .notion-media-item {
-        margin-bottom: 10px;
-        border-radius: 9px;
+        margin-bottom: 8px;
+        border-radius: 8px;
     }
 
     .media-lightbox {
@@ -2052,7 +2048,6 @@ a {
     .media-lightbox-close {
         top: 12px;
         right: 12px;
-
         width: 40px;
         height: 40px;
     }
