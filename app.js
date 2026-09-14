@@ -198,6 +198,8 @@ async function init() {
     setupProfileTabs();
     setupEvents();
     loadInstagramFeeds();
+    loadHeader();
+    loadFooter();
 }
 
 
