@@ -1744,14 +1744,318 @@ a {
 
 
 /* Images from Notion */
+/* =====================================================
+   NOTION MEDIA MASONRY GRID
+   ===================================================== */
 
-.modal-description img {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    margin: 16px 0;
+.modal-description {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    line-height: 1.75;
+    color: var(--text);
+}
+
+
+/* Masonry container */
+
+.notion-media-grid {
+    columns: 3 220px;
+    column-gap: 14px;
+    margin: 20px 0;
+}
+
+
+/* Image / Video item */
+
+.notion-media-item {
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+
+    position: relative;
+
+    margin: 0 0 14px;
+
+    overflow: hidden;
+
+    background: var(--background-soft);
+
     border-radius: 12px;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 4px 15px
+        rgba(5, 168, 176, 0.08);
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+
+/* Hover */
+
+.notion-media-item:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 10px 25px
+        rgba(5, 168, 176, 0.16);
+}
+
+
+/* Images */
+
+.notion-media-item img {
+    display: block;
+
+    width: 100%;
+    height: auto;
+
+    margin: 0;
+
+    border-radius: 0;
+
+    object-fit: cover;
+
+    transition:
+        transform 0.35s ease;
+}
+
+
+.notion-media-item:hover img {
+    transform: scale(1.025);
+}
+
+
+/* Videos */
+
+.notion-media-item video {
+    display: block;
+
+    width: 100%;
+    height: auto;
+
+    margin: 0;
+
+    border-radius: 0;
+
+    background: #000;
+}
+
+
+/* Video play indicator */
+
+.notion-media-video-icon {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(17, 17, 17, 0.72);
+
+    color: white;
+
+    border:
+        2px solid
+        var(--yellow-primary);
+
+    border-radius: 50%;
+
+    font-size: 18px;
+
+    pointer-events: none;
+
+    backdrop-filter: blur(3px);
+}
+
+
+/* =====================================================
+   IMAGE LIGHTBOX
+   ===================================================== */
+
+.media-lightbox {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 3000;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px;
+
+    background:
+        rgba(8, 30, 32, 0.90);
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    opacity: 0;
+    visibility: hidden;
+
+    transition:
+        opacity 0.25s ease,
+        visibility 0.25s ease;
+}
+
+
+.media-lightbox.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+/* Lightbox content */
+
+.media-lightbox-content {
+    position: relative;
+
+    max-width: 95vw;
+    max-height: 90vh;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* Lightbox image */
+
+.media-lightbox-content img {
+    display: block;
+
+    max-width: 95vw;
+    max-height: 90vh;
+
+    width: auto;
+    height: auto;
+
+    object-fit: contain;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 20px 60px
+        rgba(0, 0, 0, 0.45);
+}
+
+
+/* Lightbox video */
+
+.media-lightbox-content video {
+    display: block;
+
+    max-width: 95vw;
+    max-height: 90vh;
+
+    width: auto;
+    height: auto;
+
+    border-radius: 10px;
+
+    background: #000;
+
+    box-shadow:
+        0 20px 60px
+        rgba(0, 0, 0, 0.45);
+}
+
+
+/* Close */
+
+.media-lightbox-close {
+    position: fixed;
+
+    top: 20px;
+    right: 25px;
+
+    z-index: 3002;
+
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: var(--yellow-primary);
+
+    color: var(--black);
+
+    border:
+        1px solid
+        var(--black);
+
+    border-radius: 50%;
+
+    font-size: 25px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease;
+}
+
+
+.media-lightbox-close:hover {
+    transform:
+        rotate(8deg)
+        scale(1.05);
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 700px) {
+
+    .notion-media-grid {
+        columns: 2 150px;
+        column-gap: 10px;
+    }
+
+    .notion-media-item {
+        margin-bottom: 10px;
+        border-radius: 9px;
+    }
+
+    .media-lightbox {
+        padding: 15px;
+    }
+
+    .media-lightbox-content img,
+    .media-lightbox-content video {
+        max-width: 94vw;
+        max-height: 85vh;
+        border-radius: 8px;
+    }
+
+    .media-lightbox-close {
+        top: 12px;
+        right: 12px;
+
+        width: 40px;
+        height: 40px;
+    }
 }
 
 
