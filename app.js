@@ -4,25 +4,6 @@
    Author: Guccimeng
    ========================================================= */
 
-
-/* =========================================================
-   SAMPLE DATA
-========================================================= */
-
-const SAMPLE_EVENTS = [
-    {
-        Name: "PRO-TEEN SCHOOL TOUR 2025",
-        Date: "August 1, 2025",
-        Hashtag: null,
-        KW: null,
-        Location: "Ang Thong Patthamarot Witthayakhom School, Ang Thong",
-        NAMTANFILM: "FILM",
-        Type: "Event",
-        Year: 2025
-    }
-];
-
-
 /* =========================================================
    GLOBAL STATE
 ========================================================= */
@@ -31,11 +12,12 @@ let events = [];
 let filteredEvents = [];
 
 let currentPage = 1;
+
 const PAGE_SIZE = 20;
 
 
 /* =========================================================
-   INSTAGRAM
+   INSTAGRAM CONFIG
 ========================================================= */
 
 const INSTAGRAM_API_URL = "./api/instagram";
@@ -62,964 +44,369 @@ const INSTAGRAM_POST_LIMIT = 20;
 
 
 /* =========================================================
-   DOM READY
+   DOM ELEMENTS
 ========================================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
-    init();
-});
+const eventsGrid =
+    document.getElementById("eventsGrid");
+
+const emptyState =
+    document.getElementById("emptyState");
+
+const searchInput =
+    document.getElementById("searchInput");
+
+const monthFilter =
+    document.getElementById("monthFilter");
+
+const dateFilter =
+    document.getElementById("dateFilter");
+
+const artistFilter =
+    document.getElementById("artistFilter");
+
+const typeFilter =
+    document.getElementById("typeFilter");
+
+const clearFilters =
+    document.getElementById("clearFilters");
+
+const emptyClear =
+    document.getElementById("emptyClear");
 
 
 /* =========================================================
-   INITIALIZE
+   PAGINATION DOM
 ========================================================= */
+
+const prevPage =
+    document.getElementById("prevPage");
+
+const nextPage =
+    document.getElementById("nextPage");
+
+const firstPage =
+    document.getElementById("firstPage");
+
+const pageNumbers =
+    document.getElementById("pageNumbers");
+
+const lastPage =
+    document.getElementById("lastPage");
+
+const pageInfo =
+    document.getElementById("pageInfo");
+
+/* CALENDAR DOM */
+
+const calendar =
+    document.getElementById("calendar");
+
+const calendarDays =
+    document.getElementById("calendarDays");
+
+const calendarMonth =
+    document.getElementById("calendarMonth");
+
+const calendarPrev =
+    document.getElementById("calendarPrev");
+
+const calendarNext =
+    document.getElementById("calendarNext");
+
+/* CALENDAR STATE */
+
+let calendarDate =
+    new Date();
+
+calendarDate.setDate(1);
+
+
+/* =========================================================
+   MODAL DOM
+========================================================= */
+
+const eventModal =
+    document.getElementById("eventModal");
+
+const modalOverlay =
+    eventModal?.querySelector(
+        ".modal-overlay"
+    );
+
+const modalClose =
+    document.getElementById("modalClose");
+
+const modalImage =
+    document.getElementById("modalImage");
+
+const modalArtist =
+    document.getElementById("modalArtist");
+
+const modalType =
+    document.getElementById("modalType");
+
+const modalTitle =
+    document.getElementById("modalTitle");
+
+const modalDate =
+    document.getElementById("modalDate");
+
+
+/* ---------------------------------------------------------
+   ADDED:
+   HASHTAG + KW MODAL ELEMENTS
+--------------------------------------------------------- */
+
+const modalHashtag =
+    document.getElementById("modalHashtag");
+
+const modalKW =
+    document.getElementById("modalKW");
+
+
+const modalLocation =
+    document.getElementById("modalLocation");
+
+const modalDescription =
+    document.getElementById(
+        "modalDescription"
+    );
+
+const modalLink =
+    document.getElementById("modalLink");
+
+
+/* =========================================================
+   INIT
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    init
+);
+
 
 async function init() {
     await loadEvents();
-
     setupFilters();
     updateStats();
-    renderUpcoming();
+    applyFilters();
+    renderUpcomingEvents();
     renderCalendar();
-
+    setupCalendar();
     setupProfileTabs();
-    setupEventControls();
-
-    setupModal();
-    setupMediaLightbox();
-
-    loadInstagram();
+    setupEvents();
+    loadInstagramFeeds();
 }
 
 
 /* =========================================================
-   LOAD EVENTS
+   Header navbar
 ========================================================= */
+async function loadHeader() {
+    const headerContainer =
+        document.getElementById("site-header");
 
-async function loadEvents() {
+    if (!headerContainer) return;
+
     try {
-        const response = await fetch("./data/events");
+        const response =
+            await fetch("components/header.html");
+
+        if (!response.ok) {
+            throw new Error("Failed to load header");
+        }
+
+        headerContainer.innerHTML =
+            await response.text();
+
+        setActiveNav();
+    } catch (error) {
+        console.error(
+            "Header loading error:",
+            error
+        );
+    }
+}
+
+
+function setActiveNav() {
+    const currentPage =
+        window.location.pathname.split("/").pop()
+        || "index.html";
+
+    document
+        .querySelectorAll(".nav a")
+        .forEach(link => {
+            const linkPage =
+                link.getAttribute("href")
+                .split("/")
+                .pop();
+
+            link.classList.toggle(
+                "active",
+                linkPage === currentPage
+            );
+        });
+}
+
+
+
+/* =========================================================
+   Footer
+========================================================= */
+async function loadFooter() {
+
+    const footerContainer =
+        document.getElementById("site-footer");
+
+    if (!footerContainer) return;
+
+    try {
+
+        const response =
+            await fetch("components/footer.html");
 
         if (!response.ok) {
             throw new Error(
-                `Failed to load events: ${response.status}`
+                "Failed to load footer"
             );
         }
 
-        const data = await response.json();
-
-        if (Array.isArray(data)) {
-            events = data;
-        } else if (Array.isArray(data.events)) {
-            events = data.events;
-        } else if (Array.isArray(data.results)) {
-            events = data.results;
-        } else {
-            events = [];
-        }
+        footerContainer.innerHTML =
+            await response.text();
 
     } catch (error) {
-        console.error("Unable to load events:", error);
 
-        events = [...SAMPLE_EVENTS];
+        console.error(
+            "Footer loading error:",
+            error
+        );
     }
-
-    filteredEvents = [...events];
-
-    renderEvents();
 }
+
+
 
 
 /* =========================================================
-   EVENT FILTERS
+   Upcoming events
 ========================================================= */
-
-function setupFilters() {
-    const searchInput =
-        document.querySelector("#eventSearch");
-
-    const yearFilter =
-        document.querySelector("#yearFilter");
-
-    const typeFilter =
-        document.querySelector("#typeFilter");
-
-    const personFilter =
-        document.querySelector("#personFilter");
-
-    if (searchInput) {
-        searchInput.addEventListener(
-            "input",
-            applyFilters
-        );
-    }
-
-    if (yearFilter) {
-        yearFilter.addEventListener(
-            "change",
-            applyFilters
-        );
-    }
-
-    if (typeFilter) {
-        typeFilter.addEventListener(
-            "change",
-            applyFilters
-        );
-    }
-
-    if (personFilter) {
-        personFilter.addEventListener(
-            "change",
-            applyFilters
-        );
-    }
-
-    populateFilterOptions();
-}
-
-
-function populateFilterOptions() {
-    const yearFilter =
-        document.querySelector("#yearFilter");
-
-    const typeFilter =
-        document.querySelector("#typeFilter");
-
-    const personFilter =
-        document.querySelector("#personFilter");
-
-    if (yearFilter) {
-        const years = [
-            ...new Set(
-                events
-                    .map(event => event.Year)
-                    .filter(Boolean)
-            )
-        ]
-            .sort((a, b) => Number(b) - Number(a));
-
-        yearFilter.innerHTML =
-            `<option value="">All Years</option>` +
-            years
-                .map(
-                    year =>
-                        `<option value="${escapeHTML(
-                            String(year)
-                        )}">${escapeHTML(
-                            String(year)
-                        )}</option>`
-                )
-                .join("");
-    }
-
-    if (typeFilter) {
-        const types = [
-            ...new Set(
-                events
-                    .map(event => event.Type)
-                    .filter(Boolean)
-            )
-        ].sort();
-
-        typeFilter.innerHTML =
-            `<option value="">All Types</option>` +
-            types
-                .map(
-                    type =>
-                        `<option value="${escapeHTML(
-                            String(type)
-                        )}">${escapeHTML(
-                            String(type)
-                        )}</option>`
-                )
-                .join("");
-    }
-
-    if (personFilter) {
-        const people = [
-            ...new Set(
-                events
-                    .map(event => event.NAMTANFILM)
-                    .filter(Boolean)
-            )
-        ].sort();
-
-        personFilter.innerHTML =
-            `<option value="">All</option>` +
-            people
-                .map(
-                    person =>
-                        `<option value="${escapeHTML(
-                            String(person)
-                        )}">${escapeHTML(
-                            String(person)
-                        )}</option>`
-                )
-                .join("");
-    }
-}
-
-
-function applyFilters() {
-    const searchInput =
-        document.querySelector("#eventSearch");
-
-    const yearFilter =
-        document.querySelector("#yearFilter");
-
-    const typeFilter =
-        document.querySelector("#typeFilter");
-
-    const personFilter =
-        document.querySelector("#personFilter");
-
-    const search =
-        searchInput
-            ? searchInput.value
-                .trim()
-                .toLowerCase()
-            : "";
-
-    const year =
-        yearFilter
-            ? yearFilter.value
-            : "";
-
-    const type =
-        typeFilter
-            ? typeFilter.value
-            : "";
-
-    const person =
-        personFilter
-            ? personFilter.value
-            : "";
-
-    filteredEvents = events.filter(event => {
-
-        const text = [
-            event.Name,
-            event.Date,
-            event.Hashtag,
-            event.KW,
-            event.Location,
-            event.NAMTANFILM,
-            event.Type,
-            event.Year
-        ]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase();
-
-        const matchesSearch =
-            !search ||
-            text.includes(search);
-
-        const matchesYear =
-            !year ||
-            String(event.Year) === String(year);
-
-        const matchesType =
-            !type ||
-            String(event.Type) === String(type);
-
-        const matchesPerson =
-            !person ||
-            String(event.NAMTANFILM) ===
-            String(person);
-
-        return (
-            matchesSearch &&
-            matchesYear &&
-            matchesType &&
-            matchesPerson
-        );
-    });
-
-    currentPage = 1;
-
-    renderEvents();
-}
-
-
-/* =========================================================
-   EVENT CONTROLS
-========================================================= */
-
-function setupEventControls() {
-    const prevButton =
-        document.querySelector("#prevPage");
-
-    const nextButton =
-        document.querySelector("#nextPage");
-
-    if (prevButton) {
-        prevButton.addEventListener(
-            "click",
-            () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderEvents();
-                    scrollToEvents();
-                }
-            }
-        );
-    }
-
-    if (nextButton) {
-        nextButton.addEventListener(
-            "click",
-            () => {
-                const totalPages =
-                    Math.max(
-                        1,
-                        Math.ceil(
-                            filteredEvents.length /
-                            PAGE_SIZE
-                        )
-                    );
-
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderEvents();
-                    scrollToEvents();
-                }
-            }
-        );
-    }
-}
-
-
-function scrollToEvents() {
-    const grid =
-        document.querySelector("#eventsGrid");
-
-    if (grid) {
-        grid.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
-    }
-}
-
-
-/* =========================================================
-   RENDER EVENTS
-========================================================= */
-
-function renderEvents() {
-    const grid =
-        document.querySelector("#eventsGrid") ||
-        document.querySelector(".events-grid");
-
-    if (!grid) {
-        return;
-    }
-
-    const start =
-        (currentPage - 1) * PAGE_SIZE;
-
-    const end =
-        start + PAGE_SIZE;
-
-    const pageEvents =
-        filteredEvents.slice(
-            start,
-            end
-        );
-
-    if (!pageEvents.length) {
-        grid.innerHTML = `
-            <div class="empty-state">
-                No events found.
-            </div>
-        `;
-
-        updatePagination();
-
-        return;
-    }
-
-    grid.innerHTML =
-        pageEvents
-            .map(
-                event =>
-                    createEventCard(event)
-            )
-            .join("");
-
-    grid
-        .querySelectorAll(".event-card")
-        .forEach(card => {
-
-            card.addEventListener(
-                "click",
-                () => {
-
-                    const index =
-                        Number(
-                            card.dataset.index
-                        );
-
-                    const event =
-                        pageEvents[index];
-
-                    if (event) {
-                        openModal(event);
-                    }
-                }
-            );
-        });
-
-    updatePagination();
-}
-
-
-function createEventCard(event) {
-
-    const image =
-        event.Image ||
-        event.image ||
-        event.Cover ||
-        event.cover ||
-        "";
-
-    const title =
-        event.Name ||
-        "Untitled Event";
-
-    const date =
-        event.Date ||
-        "";
-
-    const person =
-        event.NAMTANFILM ||
-        "";
-
-    const type =
-        event.Type ||
-        "";
-
-    const location =
-        event.Location ||
-        "";
-
-    const imageHTML =
-        image
-            ? `
-                <div class="event-card-image">
-                    <img
-                        src="${escapeAttribute(
-                            image
-                        )}"
-                        alt="${escapeAttribute(
-                            title
-                        )}"
-                        loading="lazy"
-                    >
-                </div>
-            `
-            : `
-                <div class="event-card-image event-card-image-empty">
-                    <span>FROM PLUTO</span>
-                </div>
-            `;
-
-    return `
-        <article
-            class="event-card"
-            data-index="${filteredEvents
-                .slice(
-                    (currentPage - 1) *
-                    PAGE_SIZE,
-                    currentPage *
-                    PAGE_SIZE
-                )
-                .indexOf(event)}"
-        >
-
-            ${imageHTML}
-
-            <div class="event-card-content">
-
-                ${
-                    person
-                        ? `
-                            <div class="event-card-person">
-                                ${escapeHTML(
-                                    person
-                                )}
-                            </div>
-                        `
-                        : ""
-                }
-
-                <h3 class="event-card-title">
-                    ${escapeHTML(title)}
-                </h3>
-
-                ${
-                    date
-                        ? `
-                            <div class="event-card-date">
-                                ${escapeHTML(
-                                    date
-                                )}
-                            </div>
-                        `
-                        : ""
-                }
-
-                ${
-                    type
-                        ? `
-                            <div class="event-card-type">
-                                ${escapeHTML(
-                                    type
-                                )}
-                            </div>
-                        `
-                        : ""
-                }
-
-                ${
-                    location
-                        ? `
-                            <div class="event-card-location">
-                                ${escapeHTML(
-                                    location
-                                )}
-                            </div>
-                        `
-                        : ""
-                }
-
-            </div>
-
-        </article>
-    `;
-}
-
-
-/* =========================================================
-   PAGINATION
-========================================================= */
-
-function updatePagination() {
-    const totalPages =
-        Math.max(
-            1,
-            Math.ceil(
-                filteredEvents.length /
-                PAGE_SIZE
-            )
-        );
-
-    const pageNumber =
-        document.querySelector("#pageNumber");
-
-    const pageInfo =
-        document.querySelector("#pageInfo");
-
-    const prevButton =
-        document.querySelector("#prevPage");
-
-    const nextButton =
-        document.querySelector("#nextPage");
-
-    if (pageNumber) {
-        pageNumber.textContent =
-            `${currentPage} / ${totalPages}`;
-    }
-
-    if (pageInfo) {
-        pageInfo.textContent =
-            `Page ${currentPage} of ${totalPages}`;
-    }
-
-    if (prevButton) {
-        prevButton.disabled =
-            currentPage <= 1;
-    }
-
-    if (nextButton) {
-        nextButton.disabled =
-            currentPage >= totalPages;
-    }
-}
-
-
-/* =========================================================
-   STATS
-========================================================= */
-
-function updateStats() {
-
-    const totalEvents =
-        document.querySelector("#totalEvents");
-
-    const totalYears =
-        document.querySelector("#totalYears");
-
-    const totalNamtanFilm =
-        document.querySelector(
-            "#totalNamtanFilm"
-        );
-
-    const totalTypes =
-        document.querySelector("#totalTypes");
-
-    if (totalEvents) {
-        totalEvents.textContent =
-            events.length;
-    }
-
-    if (totalYears) {
-        totalYears.textContent =
-            new Set(
-                events
-                    .map(event => event.Year)
-                    .filter(Boolean)
-            ).size;
-    }
-
-    if (totalNamtanFilm) {
-        totalNamtanFilm.textContent =
-            new Set(
-                events
-                    .map(
-                        event =>
-                            event.NAMTANFILM
-                    )
-                    .filter(Boolean)
-            ).size;
-    }
-
-    if (totalTypes) {
-        totalTypes.textContent =
-            new Set(
-                events
-                    .map(event => event.Type)
-                    .filter(Boolean)
-            ).size;
-    }
-}
-
-
-/* =========================================================
-   UPCOMING EVENTS
-========================================================= */
-
-function renderUpcoming() {
+function renderUpcomingEvents() {
 
     const container =
-        document.querySelector(
-            "#upcomingEvents"
+        document.getElementById(
+            "upcomingEvents"
         );
 
     if (!container) {
         return;
     }
 
+
+    /* -----------------------------------------------------
+       TODAY
+    ----------------------------------------------------- */
+
     const today =
         new Date();
 
-    const upcoming =
-        events
-            .map(event => ({
-                event,
-                date: parseEventDate(
-                    event.Date
-                )
-            }))
-            .filter(item =>
-                item.date &&
-                item.date >= today
-            )
-            .sort(
-                (a, b) =>
-                    a.date - b.date
-            )
-            .slice(0, 6);
+    today.setHours(
+        0,
+        0,
+        0,
+        0
+    );
 
-    if (!upcoming.length) {
+
+    /* -----------------------------------------------------
+       UPCOMING EVENTS
+    ----------------------------------------------------- */
+    const upcomingEvents =
+        events
+            .filter(event => {
+
+                const eventDate =
+                    parseEventDate(
+                        event.Date
+                    );
+
+                if (!eventDate) {
+                    return false;
+                }
+
+                eventDate.setHours(
+                    0,
+                    0,
+                    0,
+                    0
+                );
+
+                return (
+                    eventDate >=
+                    today
+                );
+            })
+            .sort((a, b) => {
+
+                const dateA =
+                    parseEventDate(
+                        a.Date
+                    );
+
+                const dateB =
+                    parseEventDate(
+                        b.Date
+                    );
+
+                return (
+                    dateA.getTime() -
+                    dateB.getTime()
+                );
+            });
+
+    /* -----------------------------------------------------
+       CLEAR
+    ----------------------------------------------------- */
+    container.innerHTML = "";
+
+    /* -----------------------------------------------------
+       EMPTY
+    ----------------------------------------------------- */
+    if (
+        upcomingEvents.length ===
+        0
+    ) {
         container.innerHTML = `
             <div class="empty-state">
                 No upcoming events.
             </div>
         `;
-
         return;
     }
 
-    container.innerHTML =
-        upcoming
-            .map(item =>
-                createUpcomingCard(
-                    item.event
-                )
-            )
-            .join("");
-
-    container
-        .querySelectorAll(".upcoming-card")
-        .forEach(card => {
-
-            card.addEventListener(
-                "click",
-                () => {
-
-                    const eventIndex =
-                        Number(
-                            card.dataset.eventIndex
-                        );
-
-                    const event =
-                        events[eventIndex];
-
-                    if (event) {
-                        openModal(event);
-                    }
-                }
-            );
-        });
-}
-
-
-function createUpcomingCard(event) {
-
-    const index =
-        events.indexOf(event);
-
-    return `
-        <article
-            class="upcoming-card"
-            data-event-index="${index}"
-        >
-
-            <div class="upcoming-date">
-                ${escapeHTML(
-                    event.Date || ""
-                )}
-            </div>
-
-            <h3>
-                ${escapeHTML(
-                    event.Name ||
-                    "Untitled Event"
-                )}
-            </h3>
-
-            ${
-                event.Location
-                    ? `
-                        <div class="upcoming-location">
-                            ${escapeHTML(
-                                event.Location
-                            )}
-                        </div>
-                    `
-                    : ""
-            }
-
-        </article>
-    `;
-}
-
-
-/* =========================================================
-   CALENDAR
-========================================================= */
-
-function renderCalendar() {
-
-    const container =
-        document.querySelector(
-            "#calendar"
-        );
-
-    if (!container) {
-        return;
-    }
-
-    const now =
-        new Date();
-
-    const year =
-        now.getFullYear();
-
-    const month =
-        now.getMonth();
-
-    const firstDay =
-        new Date(
-            year,
-            month,
-            1
-        );
-
-    const lastDay =
-        new Date(
-            year,
-            month + 1,
-            0
-        );
-
-    const startWeekday =
-        firstDay.getDay();
-
-    const days =
-        lastDay.getDate();
-
-    const eventDates =
-        {};
-
-    events.forEach(event => {
-
-        const date =
-            parseEventDate(
-                event.Date
-            );
-
-        if (!date) {
-            return;
-        }
-
-        if (
-            date.getFullYear() === year &&
-            date.getMonth() === month
-        ) {
-
-            const day =
-                date.getDate();
-
-            if (!eventDates[day]) {
-                eventDates[day] = [];
-            }
-
-            eventDates[day].push(
-                event
+    /* -----------------------------------------------------
+       CREATE CARDS
+    ----------------------------------------------------- */
+    upcomingEvents.forEach(
+        event => {
+            const card =
+                createEventCard(
+                    event
+                );
+            container.appendChild(
+                card
             );
         }
-    });
-
-    let html = "";
-
-    html += `
-        <div class="calendar-header">
-            ${[
-                "Sun",
-                "Mon",
-                "Tue",
-                "Wed",
-                "Thu",
-                "Fri",
-                "Sat"
-            ]
-                .map(
-                    day =>
-                        `<div>${day}</div>`
-                )
-                .join("")}
-        </div>
-    `;
-
-    html += `
-        <div class="calendar-grid">
-    `;
-
-    for (
-        let i = 0;
-        i < startWeekday;
-        i++
-    ) {
-        html += `
-            <div class="calendar-day empty"></div>
-        `;
-    }
-
-    for (
-        let day = 1;
-        day <= days;
-        day++
-    ) {
-
-        const dayEvents =
-            eventDates[day] || [];
-
-        html += `
-            <div
-                class="calendar-day ${
-                    dayEvents.length
-                        ? "has-event"
-                        : ""
-                }"
-                data-day="${day}"
-            >
-
-                <div class="calendar-day-number">
-                    ${day}
-                </div>
-
-                ${
-                    dayEvents.length
-                        ? `
-                            <div class="calendar-event-dot">
-                                ${dayEvents.length}
-                            </div>
-                        `
-                        : ""
-                }
-
-            </div>
-        `;
-    }
-
-    html += `
-        </div>
-    `;
-
-    container.innerHTML = html;
-
-    container
-        .querySelectorAll(
-            ".calendar-day.has-event"
-        )
-        .forEach(dayElement => {
-
-            dayElement.addEventListener(
-                "click",
-                () => {
-
-                    const day =
-                        Number(
-                            dayElement.dataset.day
-                        );
-
-                    const selected =
-                        eventDates[day];
-
-                    if (
-                        selected &&
-                        selected.length
-                    ) {
-                        openModal(
-                            selected[0]
-                        );
-                    }
-                }
-            );
-        });
+    );
 }
+
 
 
 /* =========================================================
    PROFILE TABS
 ========================================================= */
-
 function setupProfileTabs() {
-
     const tabs =
         document.querySelectorAll(
             ".profile-tab"
@@ -1030,7 +417,7 @@ function setupProfileTabs() {
             ".profile-panel"
         );
 
-    if (!tabs.length) {
+    if (!tabs.length || !panels.length) {
         return;
     }
 
@@ -1041,37 +428,2021 @@ function setupProfileTabs() {
             () => {
 
                 const target =
-                    tab.dataset.tab;
+                    tab.dataset.profile;
 
-                tabs.forEach(item =>
+                tabs.forEach(item => {
                     item.classList.remove(
                         "active"
-                    )
-                );
+                    );
+                });
 
-                panels.forEach(panel =>
+                panels.forEach(panel => {
                     panel.classList.remove(
                         "active"
-                    )
-                );
+                    );
+                });
+
 
                 tab.classList.add(
                     "active"
                 );
 
-                const panel =
-                    document.querySelector(
-                        `#${target}`
+                const targetPanel =
+                    document.getElementById(
+                        `profile-${target}`
                     );
 
-                if (panel) {
-                    panel.classList.add(
+                if (targetPanel) {
+                    targetPanel.classList.add(
                         "active"
                     );
                 }
+
             }
         );
+
     });
+}
+
+
+
+
+/* =========================================================
+   CALENDAR
+========================================================= */
+
+function setupCalendar() {
+
+    if (!calendar) {
+        return;
+    }
+
+    calendarPrev?.addEventListener(
+        "click",
+        () => {
+
+            calendarDate.setMonth(
+                calendarDate.getMonth() - 1
+            );
+
+            renderCalendar();
+        }
+    );
+
+    calendarNext?.addEventListener(
+        "click",
+        () => {
+
+            calendarDate.setMonth(
+                calendarDate.getMonth() + 1
+            );
+
+            renderCalendar();
+        }
+    );
+}
+
+
+function renderCalendar() {
+
+    if (!calendar || !calendarDays) {
+        return;
+    }
+
+    const year =
+        calendarDate.getFullYear();
+
+    const month =
+        calendarDate.getMonth();
+
+    const firstDay =
+        new Date(
+            year,
+            month,
+            1
+        ).getDay();
+
+    const daysInMonth =
+        new Date(
+            year,
+            month + 1,
+            0
+        ).getDate();
+
+    const monthName =
+        calendarDate.toLocaleDateString(
+            "en-US",
+            {
+                month: "long",
+                year: "numeric"
+            }
+        );
+
+    calendarMonth.textContent =
+        monthName;
+
+    calendarDays.innerHTML = "";
+
+    /* EMPTY DAYS BEFORE MONTH */
+
+    for (
+        let i = 0;
+        i < firstDay;
+        i++
+    ) {
+
+        const emptyDay =
+            document.createElement("div");
+
+        emptyDay.className =
+            "calendar-day calendar-day-empty";
+
+        calendarDays.appendChild(
+            emptyDay
+        );
+    }
+
+
+    /* MONTH DAYS */
+
+    for (
+        let day = 1;
+        day <= daysInMonth;
+        day++
+    ) {
+
+        const dayElement =
+            document.createElement("div");
+
+        dayElement.className =
+            "calendar-day";
+
+        const currentDate =
+            new Date(
+                year,
+                month,
+                day
+            );
+
+        currentDate.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+
+
+        /* TODAY */
+
+        const today =
+            new Date();
+
+        today.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+
+        if (
+            currentDate.getTime() ===
+            today.getTime()
+        ) {
+            dayElement.classList.add(
+                "is-today"
+            );
+        }
+
+
+        /* DAY NUMBER */
+
+        const dayNumber =
+            document.createElement("div");
+
+        dayNumber.className =
+            "calendar-day-number";
+
+        dayNumber.textContent =
+            day;
+
+        dayElement.appendChild(
+            dayNumber
+        );
+
+
+        /* EVENTS */
+
+        const dayEvents =
+            events.filter(
+                event =>
+                    eventOccursOnDate(
+                        event,
+                        currentDate
+                    )
+            );
+
+        dayEvents.forEach(
+            event => {
+
+                const eventElement =
+                    document.createElement(
+                        "button"
+                    );
+
+                eventElement.type =
+                    "button";
+
+                eventElement.className =
+                    "calendar-event";
+
+                eventElement.textContent =
+                    event.Name ||
+                    "Untitled Event";
+
+                eventElement.title =
+                    event.Name ||
+                    "Untitled Event";
+
+                eventElement.addEventListener(
+                    "click",
+                    () => {
+                        openModal(event);
+                    }
+                );
+
+                dayElement.appendChild(
+                    eventElement
+                );
+            }
+        );
+
+
+        calendarDays.appendChild(
+            dayElement
+        );
+    }
+}
+
+
+function eventOccursOnDate(
+    event,
+    targetDate
+) {
+
+    if (!event || !event.Date) {
+        return false;
+    }
+
+    const value =
+        String(event.Date).trim();
+
+    if (!value) {
+        return false;
+    }
+
+
+    /*
+       Supports:
+
+       2026-09-13
+
+       2026-09-13 → 2026-09-15
+    */
+
+    const parts =
+        value.split("→");
+
+    const startDate =
+        parseEventDate(
+            parts[0]
+        );
+
+    if (!startDate) {
+        return false;
+    }
+
+    startDate.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    /*
+       Single-day event
+    */
+
+    if (parts.length === 1) {
+
+        return (
+            startDate.getTime() ===
+            targetDate.getTime()
+        );
+    }
+
+
+    /*
+       Multi-day event
+    */
+
+    const endDate =
+        parseEventDate(
+            parts[1]
+        );
+
+    if (!endDate) {
+        return (
+            startDate.getTime() ===
+            targetDate.getTime()
+        );
+    }
+
+    endDate.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+    return (
+        targetDate >= startDate &&
+        targetDate <= endDate
+    );
+}
+
+
+
+
+/* =========================================================
+   LOAD EVENTS
+========================================================= */
+
+async function loadEvents() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/events",
+                {
+                    cache: "no-store"
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+        }
+
+        const data =
+            await response.json();
+
+        if (!Array.isArray(data)) {
+            throw new Error(
+                "Events API did not return an array."
+            );
+        }
+
+        events =
+            data.filter(
+                event =>
+                    event &&
+                    event.Date
+            );
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load events:",
+            error
+        );
+
+        events =
+            SAMPLE_EVENTS.filter(
+                event =>
+                    event &&
+                    event.Date
+            );
+    }
+
+
+    /* -----------------------------------------------------
+       SORT EVENTS
+    ----------------------------------------------------- */
+
+    events.sort(
+        (a, b) => {
+
+            const dateA =
+                parseEventDate(
+                    a.Date
+                );
+
+            const dateB =
+                parseEventDate(
+                    b.Date
+                );
+
+            if (!dateA && !dateB) {
+                return 0;
+            }
+
+            if (!dateA) {
+                return 1;
+            }
+
+            if (!dateB) {
+                return -1;
+            }
+
+            return (
+                dateB.getTime() -
+                dateA.getTime()
+            );
+        }
+    );
+
+
+    filteredEvents =
+        [...events];
+}
+
+
+/* =========================================================
+   FILTER SETUP
+========================================================= */
+
+function setupFilters() {
+
+    const filterElements = [
+        searchInput,
+        monthFilter,
+        dateFilter,
+        artistFilter,
+        typeFilter
+    ];
+
+    filterElements.forEach(
+        element => {
+
+            if (!element) {
+                return;
+            }
+
+            element.addEventListener(
+                "input",
+                applyFilters
+            );
+
+            element.addEventListener(
+                "change",
+                applyFilters
+            );
+        }
+    );
+
+
+    /* -----------------------------------------------------
+       MONTH FILTER OPTIONS
+    ----------------------------------------------------- */
+
+    if (monthFilter) {
+
+        const currentValue =
+            monthFilter.value;
+
+        const months = [
+            ...new Set(
+                events
+                    .map(event => {
+
+                        const date =
+                            parseEventDate(
+                                event.Date
+                            );
+
+                        if (!date) {
+                            return null;
+                        }
+
+                        return String(
+                            date.getMonth() + 1
+                        ).padStart(2, "0");
+                    })
+                    .filter(Boolean)
+            )
+        ].sort(
+            (a, b) =>
+                Number(a) -
+                Number(b)
+        );
+
+
+        monthFilter.innerHTML = `
+            <option value="">
+                All Months
+            </option>
+
+            ${months.map(month => {
+
+                const monthName =
+                    new Intl.DateTimeFormat(
+                        "en-US",
+                        {
+                            month: "long"
+                        }
+                    ).format(
+                        new Date(
+                            2000,
+                            Number(month) - 1,
+                            1
+                        )
+                    );
+
+                return `
+                    <option value="${month}">
+                        ${monthName}
+                    </option>
+                `;
+
+            }).join("")}
+        `;
+
+
+        if (
+            months.includes(
+                currentValue
+            )
+        ) {
+            monthFilter.value =
+                currentValue;
+        }
+    }
+
+
+    /* -----------------------------------------------------
+       TYPE FILTER OPTIONS
+    ----------------------------------------------------- */
+
+    if (typeFilter) {
+
+        const currentValue =
+            typeFilter.value;
+
+        const types = [
+            ...new Set(
+                events
+                    .flatMap(event => {
+
+                        if (
+                            Array.isArray(
+                                event.Type
+                            )
+                        ) {
+                            return event.Type;
+                        }
+
+                        return event.Type
+                            ? [event.Type]
+                            : [];
+                    })
+                    .map(
+                        value =>
+                            String(
+                                value
+                            ).trim()
+                    )
+                    .filter(Boolean)
+            )
+        ].sort(
+            (a, b) =>
+                a.localeCompare(b)
+        );
+
+
+        typeFilter.innerHTML = `
+            <option value="">
+                All Types
+            </option>
+
+            ${types.map(type => `
+                <option value="${escapeHTML(type)}">
+                    ${escapeHTML(type)}
+                </option>
+            `).join("")}
+        `;
+
+
+        if (
+            types.includes(
+                currentValue
+            )
+        ) {
+            typeFilter.value =
+                currentValue;
+        }
+    }
+
+
+    /* =====================================================
+       CLEAR FILTERS
+    ===================================================== */
+
+    if (clearFilters) {
+
+        clearFilters.addEventListener(
+            "click",
+            clearAllFilters
+        );
+    }
+
+
+    if (emptyClear) {
+
+        emptyClear.addEventListener(
+            "click",
+            clearAllFilters
+        );
+    }
+
+} // <-- CLOSE setupFilters()
+
+
+/* =========================================================
+   CLEAR ALL FILTERS
+========================================================= */
+
+function clearAllFilters() {
+
+    if (searchInput) {
+        searchInput.value = "";
+    }
+
+    if (monthFilter) {
+        monthFilter.value = "";
+    }
+
+    if (dateFilter) {
+        dateFilter.value = "";
+    }
+
+    if (artistFilter) {
+        artistFilter.value = "";
+    }
+
+    if (typeFilter) {
+        typeFilter.value = "";
+    }
+
+    currentPage = 1;
+
+    applyFilters();
+}
+
+
+/* =========================================================
+   APPLY FILTERS
+========================================================= */
+
+function applyFilters() {
+
+    const search =
+        searchInput?.value
+            ?.trim()
+            .toLowerCase() || "";
+
+    const month =
+        monthFilter?.value || "";
+
+    const date =
+        dateFilter?.value || "";
+
+    const artist =
+        artistFilter?.value || "";
+
+    const type =
+        typeFilter?.value || "";
+
+
+    filteredEvents =
+        events.filter(
+            event => {
+
+                /* -----------------------------------------
+                   SEARCH
+                ----------------------------------------- */
+
+                const searchableText = [
+                    event.Name,
+                    event.Location,
+                    event.NAMTANFILM,
+                    event.Type,
+                    event.Hashtag,
+                    event.KW,
+                    event.Year
+                ]
+                    .flat()
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
+
+
+                if (
+                    search &&
+                    !searchableText.includes(
+                        search
+                    )
+                ) {
+                    return false;
+                }
+
+
+                /* -----------------------------------------
+                   MONTH FILTER
+                ----------------------------------------- */
+
+                if (month) {
+
+                    const eventDate =
+                        parseEventDate(
+                            event.Date
+                        );
+
+                    if (!eventDate) {
+                        return false;
+                    }
+
+                    const eventMonth =
+                        String(
+                            eventDate.getMonth() + 1
+                        ).padStart(
+                            2,
+                            "0"
+                        );
+
+                    if (
+                        eventMonth !==
+                        month
+                    ) {
+                        return false;
+                    }
+                }
+
+
+                /* -----------------------------------------
+                   DATE FILTER
+                ----------------------------------------- */
+
+                if (date) {
+
+                    const eventDate =
+                        parseEventDate(
+                            event.Date
+                        );
+
+                    if (!eventDate) {
+                        return false;
+                    }
+
+                    const eventDateString =
+                        [
+                            eventDate.getFullYear(),
+                            String(
+                                eventDate.getMonth() + 1
+                            ).padStart(2, "0"),
+                            String(
+                                eventDate.getDate()
+                            ).padStart(2, "0")
+                        ].join("-");
+
+
+                    if (
+                        eventDateString !==
+                        date
+                    ) {
+                        return false;
+                    }
+                }
+
+
+                /* -----------------------------------------
+                   ARTIST FILTER
+                ----------------------------------------- */
+
+                if (artist) {
+
+                    const artistValue =
+                        Array.isArray(
+                            event.NAMTANFILM
+                        )
+                            ? event.NAMTANFILM
+                            : [
+                                event.NAMTANFILM
+                            ];
+
+                    const normalizedArtists =
+                        artistValue
+                            .filter(Boolean)
+                            .map(
+                                value =>
+                                    String(
+                                        value
+                                    )
+                                        .trim()
+                                        .toLowerCase()
+                            );
+
+                    if (
+                        !normalizedArtists.includes(
+                            artist
+                                .trim()
+                                .toLowerCase()
+                        )
+                    ) {
+                        return false;
+                    }
+                }
+
+
+                /* -----------------------------------------
+                   TYPE FILTER
+                ----------------------------------------- */
+
+                if (type) {
+
+                    const typeValue =
+                        Array.isArray(
+                            event.Type
+                        )
+                            ? event.Type
+                            : [
+                                event.Type
+                            ];
+
+                    const normalizedTypes =
+                        typeValue
+                            .filter(Boolean)
+                            .map(
+                                value =>
+                                    String(
+                                        value
+                                    )
+                                        .trim()
+                                        .toLowerCase()
+                            );
+
+                    if (
+                        !normalizedTypes.includes(
+                            type
+                                .trim()
+                                .toLowerCase()
+                        )
+                    ) {
+                        return false;
+                    }
+                }
+
+
+                return true;
+            }
+        );
+
+
+    /* -----------------------------------------------------
+       RESET TO FIRST PAGE
+    ----------------------------------------------------- */
+
+    currentPage = 1;
+
+
+    /* -----------------------------------------------------
+       RESULT COUNT
+    ----------------------------------------------------- */
+
+    const resultCount =
+        document.getElementById("result-count") ||
+        document.getElementById("resultCount") ||
+        document.querySelector(".result-count");
+
+    if (resultCount) {
+
+        resultCount.textContent =
+            filteredEvents.length;
+    }
+
+
+    /* -----------------------------------------------------
+       RENDER
+    ----------------------------------------------------- */
+
+    renderEvents();
+}
+
+
+/* =========================================================
+   RENDER EVENTS
+========================================================= */
+
+function renderEvents() {
+
+    if (!eventsGrid) {
+        console.error(
+            "eventsGrid was not found."
+        );
+
+        return;
+    }
+
+
+    eventsGrid.innerHTML = "";
+
+
+    /* -----------------------------------------------------
+       EMPTY STATE
+    ----------------------------------------------------- */
+
+    const total =
+        filteredEvents.length;
+
+    if (total === 0) {
+
+        if (emptyState) {
+            emptyState.classList.remove(
+                "hidden"
+            );
+        }
+
+        renderPagination();
+
+        return;
+    }
+
+
+    if (emptyState) {
+        emptyState.classList.add(
+            "hidden"
+        );
+    }
+
+
+    /* -----------------------------------------------------
+       PAGE CALCULATION
+    ----------------------------------------------------- */
+
+    const totalPages =
+        Math.ceil(
+            total /
+            PAGE_SIZE
+        );
+
+
+    if (
+        currentPage >
+        totalPages
+    ) {
+        currentPage =
+            totalPages;
+    }
+
+
+    const startIndex =
+        (
+            currentPage -
+            1
+        ) *
+        PAGE_SIZE;
+
+
+    const endIndex =
+        startIndex +
+        PAGE_SIZE;
+
+
+    const pageEvents =
+        filteredEvents.slice(
+            startIndex,
+            endIndex
+        );
+
+
+    /* -----------------------------------------------------
+       CREATE EVENT CARDS
+    ----------------------------------------------------- */
+
+    pageEvents.forEach(
+        event => {
+
+            const card =
+                createEventCard(
+                    event
+                );
+
+            eventsGrid.appendChild(
+                card
+            );
+        }
+    );
+
+
+    /* -----------------------------------------------------
+       PAGINATION
+    ----------------------------------------------------- */
+
+    renderPagination();
+}
+
+
+/* =========================================================
+   CREATE EVENT CARD
+========================================================= */
+
+function createEventCard(event) {
+
+    const card =
+        document.createElement(
+            "article"
+        );
+
+    card.className =
+        "event-card";
+
+
+    /* -----------------------------------------------------
+       IMAGE
+    ----------------------------------------------------- */
+
+    const imagePath =
+        event.Image ||
+        event.image ||
+        "";
+
+
+    const imageHTML =
+        imagePath
+            ? `
+                <img src="${escapeHTML(
+                        imagePath
+                    )}"
+                    alt="${escapeHTML(
+                        event.Name ||
+                        "Event"
+                    )}"
+                    loading="lazy"
+                >
+            `
+            : `
+                <div class="event-image-placeholder">
+                    <img src="images/placeholder.jpg" alt="NF">
+                </div>
+            `;
+
+
+    /* -----------------------------------------------------
+       TYPE
+    ----------------------------------------------------- */
+
+    const typeDisplay =
+        Array.isArray(
+            event.Type
+        )
+            ? event.Type.join(
+                ", "
+            )
+            : event.Type ||
+              "Other";
+
+
+    /* -----------------------------------------------------
+       ARTIST
+    ----------------------------------------------------- */
+
+    const artistDisplay =
+        Array.isArray(
+            event.NAMTANFILM
+        )
+            ? event.NAMTANFILM.join(
+                ", "
+            )
+            : event.NAMTANFILM ||
+              "N/A";
+
+
+    /* -----------------------------------------------------
+       CARD HTML
+       
+       DATE IS BETWEEN IMAGE + BODY
+    ----------------------------------------------------- */
+
+    card.innerHTML = `
+        <div class="event-image">
+            ${imageHTML}
+        </div>
+
+        <div class="event-date">
+            ${escapeHTML(
+                formatShortDate(
+                    event.Date
+                )
+            )}
+        </div>
+
+        <div class="event-body">
+
+            <div class="event-tags">
+
+                <span class="tag">
+                    ${escapeHTML(
+                        artistDisplay
+                    )}
+                </span>
+
+                <span class="tag">
+                    ${escapeHTML(
+                        typeDisplay
+                    )}
+                </span>
+
+            </div>
+
+
+            <h3 class="event-title">
+                ${escapeHTML(
+                    event.Name ||
+                    "Untitled Event"
+                )}
+            </h3>
+
+
+            <button
+                class="event-view"
+                type="button"
+            >
+                View Event
+            </button>
+
+        </div>
+    `;
+
+
+    /* -----------------------------------------------------
+       VIEW BUTTON
+    ----------------------------------------------------- */
+
+    const viewButton =
+        card.querySelector(
+            ".event-view"
+        );
+
+
+    if (viewButton) {
+
+        viewButton.addEventListener(
+            "click",
+            () => {
+
+                openModal(
+                    event
+                );
+
+            }
+        );
+    }
+
+
+    return card;
+}
+
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+function renderPagination() {
+
+    if (!pageNumbers) {
+        return;
+    }
+
+
+    const totalPages =
+        Math.ceil(
+            filteredEvents.length /
+            PAGE_SIZE
+        );
+
+
+    /* -----------------------------------------------------
+       CLEAR OLD PAGE NUMBERS
+    ----------------------------------------------------- */
+
+    pageNumbers.innerHTML = "";
+
+
+    /* -----------------------------------------------------
+       NO / ONE PAGE
+    ----------------------------------------------------- */
+
+    if (totalPages <= 1) {
+
+        if (firstPage) {
+            firstPage.disabled =
+                true;
+        }
+
+        if (prevPage) {
+            prevPage.disabled =
+                true;
+        }
+
+        if (nextPage) {
+            nextPage.disabled =
+                true;
+        }
+
+        if (lastPage) {
+            lastPage.disabled =
+                true;
+        }
+
+        if (pageInfo) {
+            pageInfo.textContent =
+                totalPages === 0
+                    ? "0 / 0"
+                    : "1 / 1";
+        }
+
+        return;
+    }
+
+
+    /* -----------------------------------------------------
+       SAFETY
+    ----------------------------------------------------- */
+
+    if (
+        currentPage >
+        totalPages
+    ) {
+        currentPage =
+            totalPages;
+    }
+
+
+    /* -----------------------------------------------------
+       FIRST / PREVIOUS
+    ----------------------------------------------------- */
+
+    if (firstPage) {
+
+        firstPage.disabled =
+            currentPage === 1;
+    }
+
+
+    if (prevPage) {
+
+        prevPage.disabled =
+            currentPage === 1;
+    }
+
+
+    /* -----------------------------------------------------
+       NEXT / LAST
+    ----------------------------------------------------- */
+
+    if (nextPage) {
+
+        nextPage.disabled =
+            currentPage ===
+            totalPages;
+    }
+
+
+    if (lastPage) {
+
+        lastPage.disabled =
+            currentPage ===
+            totalPages;
+    }
+
+
+    /* -----------------------------------------------------
+       PAGE NUMBER RANGE
+       
+       Example:
+       
+       1 2 3 4 5 6 7 8 9
+       
+       When current page moves:
+       
+       2 3 4 5 6 7 8 9 10
+    ----------------------------------------------------- */
+
+    let startPage =
+        Math.max(
+            1,
+            currentPage - 4
+        );
+
+
+    let endPage =
+        Math.min(
+            totalPages,
+            startPage + 8
+        );
+
+
+    if (
+        endPage -
+        startPage <
+        8
+    ) {
+
+        startPage =
+            Math.max(
+                1,
+                endPage - 8
+            );
+    }
+
+
+    /* -----------------------------------------------------
+       CREATE PAGE BUTTONS
+    ----------------------------------------------------- */
+
+    for (
+        let page = startPage;
+        page <= endPage;
+        page++
+    ) {
+
+        const button =
+            document.createElement(
+                "button"
+            );
+
+
+        button.type =
+            "button";
+
+
+        button.className =
+            "page-btn page-number";
+
+
+        button.textContent =
+            page;
+
+
+        /* -------------------------------------------------
+           ACTIVE PAGE
+        ------------------------------------------------- */
+
+        if (
+            page ===
+            currentPage
+        ) {
+
+            button.classList.add(
+                "active"
+            );
+        }
+
+
+        /* -------------------------------------------------
+           CLICK PAGE
+        ------------------------------------------------- */
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                currentPage =
+                    page;
+
+                renderEvents();
+
+                renderPagination();
+
+                scrollToEvents();
+            }
+        );
+
+
+        pageNumbers.appendChild(
+            button
+        );
+    }
+
+
+    /* -----------------------------------------------------
+       PAGE INFO
+    ----------------------------------------------------- */
+
+    if (pageInfo) {
+
+        pageInfo.textContent =
+            `${currentPage} / ${totalPages}`;
+    }
+}
+
+
+/* =========================================================
+   EVENT CONTROLS
+========================================================= */
+
+function setupEvents() {
+
+
+    /* -----------------------------------------------------
+       PREVIOUS
+    ----------------------------------------------------- */
+
+    if (prevPage) {
+
+        prevPage.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    currentPage >
+                    1
+                ) {
+
+                    currentPage--;
+
+                    renderEvents();
+
+                    renderPagination();
+
+                    scrollToEvents();
+                }
+            }
+        );
+    }
+
+
+    /* -----------------------------------------------------
+       NEXT
+    ----------------------------------------------------- */
+
+    if (nextPage) {
+
+        nextPage.addEventListener(
+            "click",
+            () => {
+
+                const totalPages =
+                    Math.ceil(
+                        filteredEvents.length /
+                        PAGE_SIZE
+                    );
+
+
+                if (
+                    currentPage <
+                    totalPages
+                ) {
+
+                    currentPage++;
+
+                    renderEvents();
+
+                    renderPagination();
+
+                    scrollToEvents();
+                }
+            }
+        );
+    }
+
+
+    /* -----------------------------------------------------
+       FIRST
+    ----------------------------------------------------- */
+
+    if (firstPage) {
+
+        firstPage.addEventListener(
+            "click",
+            () => {
+
+                currentPage =
+                    1;
+
+                renderEvents();
+
+                renderPagination();
+
+                scrollToEvents();
+            }
+        );
+    }
+
+
+    /* -----------------------------------------------------
+       LAST
+    ----------------------------------------------------- */
+
+    if (lastPage) {
+
+        lastPage.addEventListener(
+            "click",
+            () => {
+
+                const totalPages =
+                    Math.ceil(
+                        filteredEvents.length /
+                        PAGE_SIZE
+                    );
+
+
+                currentPage =
+                    totalPages;
+
+
+                renderEvents();
+
+                renderPagination();
+
+                scrollToEvents();
+            }
+        );
+    }
+
+
+    /* -----------------------------------------------------
+       MODAL CLOSE
+    ----------------------------------------------------- */
+
+    if (modalClose) {
+
+        modalClose.addEventListener(
+            "click",
+            closeModal
+        );
+    }
+
+
+    if (modalOverlay) {
+
+        modalOverlay.addEventListener(
+            "click",
+            closeModal
+        );
+    }
+
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key ===
+                "Escape"
+            ) {
+
+                closeModal();
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   SCROLL TO EVENTS
+========================================================= */
+
+function scrollToEvents() {
+
+    const eventsSection =
+        document.getElementById(
+            "events-section"
+        );
+
+
+    if (!eventsSection) {
+        return;
+    }
+
+
+    const offset =
+        100;
+
+
+    const top =
+        eventsSection.getBoundingClientRect()
+            .top +
+        window.scrollY -
+        offset;
+
+
+    window.scrollTo({
+        top,
+        behavior: "smooth"
+    });
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+function updateStats() {
+
+    /* -----------------------------------------------------
+       TOTAL EVENTS
+    ----------------------------------------------------- */
+
+    const totalCount =
+        document.getElementById("totalCount");
+
+    if (totalCount) {
+        totalCount.textContent = events.length;
+    }
+
+
+    /* -----------------------------------------------------
+       NAMTAN EVENTS
+    ----------------------------------------------------- */
+
+    const namtanCount =
+        document.getElementById("namtanCount");
+
+    if (namtanCount) {
+
+        const count =
+            events.filter(event => {
+
+                const value =
+                    Array.isArray(event.NAMTANFILM)
+                        ? event.NAMTANFILM
+                        : [event.NAMTANFILM];
+
+                return value.some(item =>
+                    String(item || "")
+                        .toLowerCase()
+                        .includes("namtan")
+                );
+            }).length;
+
+        namtanCount.textContent = count;
+    }
+
+
+    /* -----------------------------------------------------
+       FILM EVENTS
+    ----------------------------------------------------- */
+
+    const filmCount =
+        document.getElementById("filmCount");
+
+    if (filmCount) {
+
+        const count =
+            events.filter(event => {
+
+                const value =
+                    Array.isArray(event.NAMTANFILM)
+                        ? event.NAMTANFILM
+                        : [event.NAMTANFILM];
+
+                return value.some(item =>
+                    String(item || "")
+                        .toLowerCase()
+                        .includes("film")
+                );
+            }).length;
+
+        filmCount.textContent = count;
+    }
+
+
+    /* -----------------------------------------------------
+       NAMTANFILM EVENTS
+    ----------------------------------------------------- */
+
+    const namtanfilmCount =
+        document.getElementById("namtanfilmCount");
+
+    if (namtanfilmCount) {
+
+        const count =
+            events.filter(event => {
+
+                const value =
+                    Array.isArray(event.NAMTANFILM)
+                        ? event.NAMTANFILM
+                        : [event.NAMTANFILM];
+
+                const text =
+                    value
+                        .map(item => String(item || ""))
+                        .join(" ")
+                        .toLowerCase();
+
+                return (
+                    text.includes("namtan") &&
+                    text.includes("film")
+                );
+            }).length;
+
+        namtanfilmCount.textContent = count;
+    }
+
+
+    /* -----------------------------------------------------
+       SERIES
+    ----------------------------------------------------- */
+
+    const seriesCount =
+        document.getElementById("seriesCount");
+
+    if (seriesCount) {
+
+        const count =
+            events.filter(event =>
+                String(event.Type || "")
+                    .toLowerCase()
+                    .includes("series")
+            ).length;
+
+        seriesCount.textContent = count;
+    }
+
+
+    /* -----------------------------------------------------
+       FANMEETING
+    ----------------------------------------------------- */
+
+    const fanmeetingCount =
+        document.getElementById("fanmeetingCount");
+
+    if (fanmeetingCount) {
+
+        const count =
+            events.filter(event =>
+                String(event.Type || "")
+                    .toLowerCase()
+                    .includes("fanmeeting")
+            ).length;
+
+        fanmeetingCount.textContent = count;
+    }
+
+
+    /* -----------------------------------------------------
+       CONCERT
+    ----------------------------------------------------- */
+
+    const concertCount =
+        document.getElementById("concertCount");
+
+    if (concertCount) {
+
+        const count =
+            events.filter(event =>
+                String(event.Type || "")
+                    .toLowerCase()
+                    .includes("concert")
+            ).length;
+
+        concertCount.textContent = count;
+    }
+
+
+    /* -----------------------------------------------------
+       OTHER EVENTS
+    ----------------------------------------------------- */
+
+    const otherEventsCount =
+        document.getElementById("otherEventsCount");
+
+    if (otherEventsCount) {
+
+        const count =
+            events.filter(event => {
+
+                const type =
+                    String(event.Type || "")
+                        .toLowerCase()
+                        .trim();
+
+                return (
+                    type !== "" &&
+                    !type.includes("series") &&
+                    !type.includes("fanmeeting") &&
+                    !type.includes("concert")
+                );
+            }).length;
+
+        otherEventsCount.textContent = count;
+    }
+}
+
+
+/* =========================================================
+   DATE PARSER
+========================================================= */
+
+function parseEventDate(
+    dateString
+) {
+
+    if (!dateString) {
+        return null;
+    }
+
+
+    const value =
+        String(
+            dateString
+        ).trim();
+
+
+    if (!value) {
+        return null;
+    }
+
+
+    /* -----------------------------------------------------
+       REMOVE DATE RANGE END
+    ----------------------------------------------------- */
+
+    const firstDate =
+        value
+            .split("→")[0]
+            .trim();
+
+
+    /* -----------------------------------------------------
+       ISO DATE
+    ----------------------------------------------------- */
+
+    if (
+        /^\d{4}-\d{2}-\d{2}/.test(
+            firstDate
+        )
+    ) {
+
+        const date =
+            new Date(
+                firstDate
+            );
+
+
+        if (
+            !Number.isNaN(
+                date.getTime()
+            )
+        ) {
+
+            return date;
+        }
+    }
+
+
+    /* -----------------------------------------------------
+       STANDARD JS DATE
+    ----------------------------------------------------- */
+
+    const parsed =
+        new Date(
+            firstDate
+        );
+
+
+    if (
+        !Number.isNaN(
+            parsed.getTime()
+        )
+    ) {
+
+        return parsed;
+    }
+
+
+    return null;
+}
+
+
+/* =========================================================
+   SHORT DATE
+========================================================= */
+
+function formatShortDate(
+    dateString
+) {
+
+    if (!dateString) {
+        return "";
+    }
+
+
+    const date =
+        parseEventDate(
+            dateString
+        );
+
+
+    if (!date) {
+        return dateString;
+    }
+
+
+    const hasTime =
+        /T\d{2}:\d{2}/.test(
+            String(
+                dateString
+            )
+        );
+
+
+    const options = {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    };
+
+
+    if (hasTime) {
+
+        options.hour =
+            "2-digit";
+
+        options.minute =
+            "2-digit";
+
+        options.hour12 =
+            false;
+    }
+
+
+    return new Intl.DateTimeFormat(
+        "en-GB",
+        options
+    ).format(date);
+}
+
+
+/* =========================================================
+   FULL DATE
+========================================================= */
+
+function formatFullDate(
+    dateString
+) {
+
+    if (!dateString) {
+        return "—";
+    }
+
+
+    const date =
+        parseEventDate(
+            dateString
+        );
+
+
+    if (!date) {
+        return dateString;
+    }
+
+
+    const hasTime =
+        /T\d{2}:\d{2}/.test(
+            String(
+                dateString
+            )
+        );
+
+
+    const options = {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    };
+
+
+    if (hasTime) {
+
+        options.hour =
+            "2-digit";
+
+        options.minute =
+            "2-digit";
+
+        options.hour12 =
+            false;
+    }
+
+
+    return new Intl.DateTimeFormat(
+        "en-GB",
+        options
+    ).format(date);
 }
 
 
@@ -1079,356 +2450,164 @@ function setupProfileTabs() {
    MODAL
 ========================================================= */
 
-let activeModal = null;
+function openModal(event) {
 
-
-function setupModal() {
-
-    activeModal =
-        document.querySelector(
-            "#eventModal"
-        );
-
-    if (!activeModal) {
+    if (!eventModal) {
         return;
     }
 
-    const closeButtons =
-        activeModal.querySelectorAll(
-            ".modal-close, [data-close-modal]"
-        );
 
-    closeButtons.forEach(button => {
+    /* -----------------------------------------------------
+       ARTIST
+    ----------------------------------------------------- */
 
-        button.addEventListener(
-            "click",
-            closeModal
-        );
-    });
+    if (modalArtist) {
 
-    activeModal.addEventListener(
-        "click",
-        event => {
-
-            if (
-                event.target ===
-                activeModal
-            ) {
-                closeModal();
-            }
-        }
-    );
-
-    document.addEventListener(
-        "keydown",
-        event => {
-
-            if (
-                event.key === "Escape" &&
-                activeModal.classList.contains(
-                    "active"
-                )
-            ) {
-                closeModal();
-            }
-        }
-    );
-}
-
-
-/* =========================================================
-   OPEN EVENT MODAL
-========================================================= */
-
-async function openModal(event) {
-
-    if (!activeModal) {
-        activeModal =
-            document.querySelector(
-                "#eventModal"
-            );
-    }
-
-    if (!activeModal) {
-        return;
-    }
-
-    const artist =
-        activeModal.querySelector(
-            "#modalArtist"
-        );
-
-    const type =
-        activeModal.querySelector(
-            "#modalType"
-        );
-
-    const title =
-        activeModal.querySelector(
-            "#modalTitle"
-        );
-
-    const date =
-        activeModal.querySelector(
-            "#modalDate"
-        );
-
-    const hashtag =
-        activeModal.querySelector(
-            "#modalHashtag"
-        );
-
-    const kw =
-        activeModal.querySelector(
-            "#modalKW"
-        );
-
-    const location =
-        activeModal.querySelector(
-            "#modalLocation"
-        );
-
-    const image =
-        activeModal.querySelector(
-            "#modalImage"
-        );
-
-    const link =
-        activeModal.querySelector(
-            "#modalLink"
-        );
-
-    const description =
-        activeModal.querySelector(
-            "#modalDescription"
-        );
-
-
-    /* -----------------------------------------
-       BASIC INFO
-    ----------------------------------------- */
-
-    if (artist) {
-        artist.textContent =
-            event.NAMTANFILM ||
-            "";
-    }
-
-    if (type) {
-        type.textContent =
-            event.Type ||
-            "";
-    }
-
-    if (title) {
-        title.textContent =
-            event.Name ||
-            "Untitled Event";
-    }
-
-    if (date) {
-        date.textContent =
-            event.Date ||
-            "";
-    }
-
-    if (hashtag) {
-        hashtag.textContent =
-            event.Hashtag ||
-            "";
-    }
-
-    if (kw) {
-        kw.textContent =
-            event.KW ||
-            "";
-    }
-
-    if (location) {
-        location.textContent =
-            event.Location ||
-            "";
+        modalArtist.textContent =
+            Array.isArray(event.NAMTANFILM)
+                ? event.NAMTANFILM.join(", ")
+                : event.NAMTANFILM || "N/A";
     }
 
 
-    /* -----------------------------------------
+    /* -----------------------------------------------------
+       TYPE
+    ----------------------------------------------------- */
+
+    if (modalType) {
+
+        modalType.textContent =
+            Array.isArray(event.Type)
+                ? event.Type.join(", ")
+                : event.Type || "Other";
+    }
+
+
+    /* -----------------------------------------------------
+       TITLE
+    ----------------------------------------------------- */
+
+    if (modalTitle) {
+
+        modalTitle.textContent =
+            event.Name || "Untitled Event";
+    }
+
+
+    /* -----------------------------------------------------
+       DATE
+    ----------------------------------------------------- */
+
+    if (modalDate) {
+
+        modalDate.textContent =
+            formatFullDate(event.Date);
+    }
+
+
+    /* -----------------------------------------------------
+       HASHTAG
+    ----------------------------------------------------- */
+
+    if (modalHashtag) {
+
+        modalHashtag.textContent =
+            Array.isArray(event.Hashtag)
+                ? event.Hashtag.join(", ")
+                : event.Hashtag || "—";
+    }
+
+
+    /* -----------------------------------------------------
+       KW
+    ----------------------------------------------------- */
+
+    if (modalKW) {
+
+        modalKW.textContent =
+            Array.isArray(event.KW)
+                ? event.KW.join(", ")
+                : event.KW || "—";
+    }
+
+
+    /* -----------------------------------------------------
+       LOCATION
+    ----------------------------------------------------- */
+
+    if (modalLocation) {
+
+        modalLocation.textContent =
+            event.Location || "—";
+    }
+
+
+    /* -----------------------------------------------------
        IMAGE
-    ----------------------------------------- */
+    ----------------------------------------------------- */
 
-    const eventImage =
-        event.Image ||
-        event.image ||
-        event.Cover ||
-        event.cover ||
-        "";
+    if (modalImage) {
 
-    if (image) {
+        if (event.Image) {
 
-        if (eventImage) {
-
-            image.src =
-                eventImage;
-
-            image.alt =
-                event.Name ||
-                "";
-
-            image.style.display =
-                "block";
+            modalImage.innerHTML = `
+                <img
+                    src="${escapeHTML(event.Image)}"
+                    alt="${escapeHTML(
+                        event.Name || "Event"
+                    )}"
+                >
+            `;
 
         } else {
 
-            image.removeAttribute(
-                "src"
-            );
-
-            image.style.display =
-                "none";
+            modalImage.innerHTML = `
+                <div class="event-image-placeholder">
+                    <img src="images/placeholder.jpg" alt="NF">
+                </div>
+            `;
         }
     }
 
 
-    /* -----------------------------------------
-       LINK
-    ----------------------------------------- */
+    /* -----------------------------------------------------
+       RELATED LINK
+    ----------------------------------------------------- */
 
-    if (link) {
+    if (modalLink) {
 
         if (event.Link) {
 
-            link.href =
+            modalLink.href =
                 event.Link;
 
-            link.style.display =
-                "";
-
-        } else if (event.URL) {
-
-            link.href =
-                event.URL;
-
-            link.style.display =
-                "";
+            modalLink.classList.remove(
+                "hidden"
+            );
 
         } else {
 
-            link.removeAttribute(
-                "href"
-            );
+            modalLink.href =
+                "#";
 
-            link.style.display =
-                "none";
+            modalLink.classList.add(
+                "hidden"
+            );
         }
     }
 
 
-    /* -----------------------------------------
-       LOADING
-    ----------------------------------------- */
-
-    if (description) {
-
-        description.innerHTML = `
-            <div class="modal-description-loading">
-                Loading event details...
-            </div>
-        `;
-    }
-
-
-    /* -----------------------------------------
+    /* -----------------------------------------------------
        SHOW MODAL
-    ----------------------------------------- */
+    ----------------------------------------------------- */
 
-    activeModal.classList.add(
+    eventModal.classList.add(
         "active"
     );
 
     document.body.classList.add(
         "modal-open"
     );
-
-
-    /* -----------------------------------------
-       LOAD NOTION CONTENT
-    ----------------------------------------- */
-
-    if (
-        event.PageID &&
-        description
-    ) {
-
-        try {
-
-            const response =
-                await fetch(
-                    `./data/content/${encodeURIComponent(
-                        event.PageID
-                    )}`
-                );
-
-            if (!response.ok) {
-                throw new Error(
-                    `HTTP ${response.status}`
-                );
-            }
-
-            const data =
-                await response.json();
-
-            if (
-                data &&
-                typeof data.content ===
-                "string"
-            ) {
-
-                description.innerHTML =
-                    data.content;
-
-                /*
-                 * IMPORTANT:
-                 * Notion content is already
-                 * retrieved correctly.
-                 *
-                 * Now convert the media
-                 * into the Masonry layout.
-                 */
-
-                setupNotionMasonry(
-                    description
-                );
-
-            } else {
-
-                description.innerHTML = `
-                    <div class="modal-description-loading">
-                        No additional content.
-                    </div>
-                `;
-            }
-
-        } catch (error) {
-
-            console.error(
-                "Unable to load event details:",
-                error
-            );
-
-            description.innerHTML = `
-                <div class="modal-description-loading">
-                    Unable to load event details.
-                </div>
-            `;
-        }
-
-    } else if (description) {
-
-        description.innerHTML = `
-            <div class="modal-description-loading">
-                No additional content.
-            </div>
-        `;
-    }
 }
 
 
@@ -1438,11 +2617,11 @@ async function openModal(event) {
 
 function closeModal() {
 
-    if (!activeModal) {
+    if (!eventModal) {
         return;
     }
 
-    activeModal.classList.remove(
+    eventModal.classList.remove(
         "active"
     );
 
@@ -1453,951 +2632,35 @@ function closeModal() {
 
 
 /* =========================================================
-   NOTION MASONRY
+   INSTAGRAM FEEDS
 ========================================================= */
 
-/*
-   This does NOT change the Notion API.
-
-   It only changes the way the already-retrieved
-   Notion media is arranged on the page.
-
-   Desktop  = 4 columns
-   Mobile   = 3 columns
-
-   Unlike CSS columns, this method:
-   - keeps each media item intact
-   - uses actual column height
-   - places new items into the shortest column
-   - recalculates after images/videos load
-*/
-
-
-let masonryResizeTimer = null;
-
-
-function setupNotionMasonry(container) {
-
-    if (!container) {
-        return;
-    }
-
-    /*
-     * Find existing media grid first.
-     */
-    let grid =
-        container.querySelector(
-            ".notion-media-grid"
-        );
-
-
-    /*
-     * If Worker returned column-based
-     * Notion HTML, flatten the media blocks
-     * into one media grid.
-     */
-    if (!grid) {
-
-        const columnList =
-            container.querySelector(
-                ".notion-column-list"
-            );
-
-        if (columnList) {
-
-            const items =
-                Array.from(
-                    columnList.querySelectorAll(
-                        ".notion-media-item, .notion-image-item"
-                    )
-                );
-
-            if (items.length) {
-
-                grid =
-                    document.createElement(
-                        "div"
-                    );
-
-                grid.className =
-                    "notion-media-grid";
-
-                items.forEach(item => {
-                    grid.appendChild(item);
-                });
-
-                columnList.replaceWith(
-                    grid
-                );
-            }
-        }
-    }
-
-
-    /*
-     * Still no grid?
-     */
-    if (!grid) {
-
-        /*
-         * Some versions may return the
-         * media blocks directly.
-         */
-        const directItems =
-            Array.from(
-                container.querySelectorAll(
-                    ".notion-media-item, .notion-image-item"
-                )
-            );
-
-        if (!directItems.length) {
-            return;
-        }
-
-        grid =
-            document.createElement(
-                "div"
-            );
-
-        grid.className =
-            "notion-media-grid";
-
-        directItems.forEach(item => {
-            grid.appendChild(item);
-        });
-    }
-
-
-    /*
-     * Get the original media items.
-     *
-     * Only direct children are used after
-     * normalization.
-     */
-    let items =
-        Array.from(
-            grid.children
-        ).filter(item =>
-            item.matches(
-                ".notion-media-item, .notion-image-item"
-            )
-        );
-
-
-    if (!items.length) {
-
-        items =
-            Array.from(
-                grid.querySelectorAll(
-                    ".notion-media-item, .notion-image-item"
-                )
-            );
-
-        items.forEach(item => {
-
-            if (
-                item.parentElement !== grid
-            ) {
-                grid.appendChild(item);
-            }
-        });
-    }
-
-
-    if (!items.length) {
-        return;
-    }
-
-
-    /*
-     * Prevent duplicate initialization.
-     */
-    if (!grid._masonryItems) {
-        grid._masonryItems =
-            items.slice();
-    } else {
-        items =
-            grid._masonryItems.slice();
-    }
-
-
-    /*
-     * Render immediately.
-     */
-    renderNotionMasonry(
-        grid,
-        items
-    );
-
-
-    /*
-     * Re-render whenever an image finishes
-     * loading because its real height may
-     * not be known during the first render.
-     */
-    items.forEach(item => {
-
-        const images =
-            item.querySelectorAll(
-                "img"
-            );
-
-        images.forEach(img => {
-
-            if (
-                img.dataset.masonryBound
-            ) {
-                return;
-            }
-
-            img.dataset.masonryBound =
-                "1";
-
-            img.addEventListener(
-                "load",
-                () => {
-                    renderNotionMasonry(
-                        grid,
-                        items
-                    );
-                }
-            );
-        });
-
-
-        const videos =
-            item.querySelectorAll(
-                "video"
-            );
-
-        videos.forEach(video => {
-
-            if (
-                video.dataset.masonryBound
-            ) {
-                return;
-            }
-
-            video.dataset.masonryBound =
-                "1";
-
-            video.addEventListener(
-                "loadedmetadata",
-                () => {
-                    renderNotionMasonry(
-                        grid,
-                        items
-                    );
-                }
-            );
-        });
-    });
-
-
-    /*
-     * Resize handling.
-     */
-    if (!grid._masonryResizeBound) {
-
-        grid._masonryResizeBound =
-            true;
-
-        window.addEventListener(
-            "resize",
-            () => {
-
-                clearTimeout(
-                    masonryResizeTimer
-                );
-
-                masonryResizeTimer =
-                    setTimeout(
-                        () => {
-
-                            if (
-                                document.body.contains(
-                                    grid
-                                )
-                            ) {
-
-                                renderNotionMasonry(
-                                    grid,
-                                    items
-                                );
-                            }
-
-                        },
-                        150
-                    );
-            }
-        );
-    }
-}
-
-
-/* =========================================================
-   RENDER MASONRY
-========================================================= */
-
-function renderNotionMasonry(
-    grid,
-    items
-) {
-
-    if (
-        !grid ||
-        !items ||
-        !items.length
-    ) {
-        return;
-    }
-
-
-    /*
-     * Number of columns:
-     *
-     * Desktop: 4
-     * Mobile: 3
-     */
-    const columnCount =
-        window.innerWidth <= 700
-            ? 3
-            : 4;
-
-
-    /*
-     * Save original item list.
-     */
-    grid._masonryItems =
-        items.slice();
-
-
-    /*
-     * Remove old masonry columns.
-     *
-     * The actual media items are first
-     * recovered from the columns.
-     */
-    const existingColumns =
-        Array.from(
-            grid.querySelectorAll(
-                ":scope > .notion-masonry-column"
-            )
-        );
-
-
-    if (existingColumns.length) {
-
-        const recovered = [];
-
-        existingColumns.forEach(
-            column => {
-
-                Array.from(
-                    column.children
-                ).forEach(item => {
-
-                    if (
-                        item.matches(
-                            ".notion-media-item, .notion-image-item"
-                        )
-                    ) {
-                        recovered.push(
-                            item
-                        );
-                    }
-                });
-            }
-        );
-
-        if (recovered.length) {
-            items =
-                grid._masonryItems =
-                    recovered;
-        }
-    }
-
-
-    /*
-     * Clear grid.
-     */
-    grid.innerHTML = "";
-
-
-    /*
-     * Create columns.
-     */
-    const columns = [];
-
-    for (
-        let i = 0;
-        i < columnCount;
-        i++
-    ) {
-
-        const column =
-            document.createElement(
-                "div"
-            );
-
-        column.className =
-            "notion-masonry-column";
-
-        grid.appendChild(
-            column
-        );
-
-        columns.push(
-            column
-        );
-    }
-
-
-    /*
-     * Place every item into the
-     * currently shortest column.
-     *
-     * This creates real Masonry behavior
-     * instead of normal row-based CSS Grid.
-     */
-    items.forEach(item => {
-
-        let shortestColumn =
-            columns[0];
-
-        let shortestHeight =
-            getColumnHeight(
-                shortestColumn
-            );
-
-        for (
-            let i = 1;
-            i < columns.length;
-            i++
-        ) {
-
-            const height =
-                getColumnHeight(
-                    columns[i]
-                );
-
-            if (
-                height <
-                shortestHeight
-            ) {
-
-                shortestColumn =
-                    columns[i];
-
-                shortestHeight =
-                    height;
-            }
-        }
-
-        shortestColumn.appendChild(
-            item
-        );
-    });
-
-
-    /*
-     * Force the correct CSS class.
-     */
-    grid.classList.add(
-        "notion-masonry-active"
-    );
-}
-
-
-/* =========================================================
-   COLUMN HEIGHT
-========================================================= */
-
-function getColumnHeight(
-    column
-) {
-
-    if (!column) {
-        return 0;
-    }
-
-    return column.getBoundingClientRect()
-        .height;
-}
-
-
-/* =========================================================
-   MEDIA LIGHTBOX
-========================================================= */
-
-let lightboxImages = [];
-let lightboxIndex = 0;
-
-let mediaLightbox = null;
-let mediaLightboxImage = null;
-let mediaLightboxCounter = null;
-
-
-/* =========================================================
-   SETUP MEDIA LIGHTBOX
-========================================================= */
-
-function setupMediaLightbox() {
-
-    /*
-     * Create lightbox only once.
-     */
-    createMediaLightbox();
-
-
-    /*
-     * Event delegation.
-     *
-     * Supports both:
-     *
-     * .notion-media-item img
-     * .notion-image-item img
-     */
-    document.addEventListener(
-        "click",
-        event => {
-
-            const image =
-                event.target.closest(
-                    ".notion-media-item img, .notion-image-item img"
-                );
-
-            if (!image) {
-                return;
-            }
-
-            const container =
-                image.closest(
-                    ".modal-description"
-                );
-
-            if (!container) {
-                return;
-            }
-
-
-            const images =
-                Array.from(
-                    container.querySelectorAll(
-                        ".notion-media-item img, .notion-image-item img"
-                    )
-                );
-
-
-            if (!images.length) {
-                return;
-            }
-
-
-            lightboxImages =
-                images.map(img => ({
-                    src:
-                        img.currentSrc ||
-                        img.src,
-
-                    alt:
-                        img.alt ||
-                        ""
-                }));
-
-
-            lightboxIndex =
-                Math.max(
-                    0,
-                    images.indexOf(image)
-                );
-
-
-            openMediaLightbox(
-                lightboxImages[
-                    lightboxIndex
-                ],
-                lightboxIndex
-            );
-        }
-    );
-}
-
-
-/* =========================================================
-   CREATE LIGHTBOX
-========================================================= */
-
-function createMediaLightbox() {
-
-    if (
-        document.querySelector(
-            "#mediaLightbox"
-        )
-    ) {
-
-        mediaLightbox =
-            document.querySelector(
-                "#mediaLightbox"
-            );
-
-        mediaLightboxImage =
-            mediaLightbox.querySelector(
-                ".media-lightbox-content img"
-            );
-
-        mediaLightboxCounter =
-            mediaLightbox.querySelector(
-                ".media-lightbox-counter"
-            );
-
-        return;
-    }
-
-
-    const wrapper =
-        document.createElement(
-            "div"
-        );
-
-    wrapper.id =
-        "mediaLightbox";
-
-    wrapper.className =
-        "media-lightbox";
-
-
-    wrapper.innerHTML = `
-
-        <button
-            type="button"
-            class="media-lightbox-close"
-            aria-label="Close"
-        >
-            ×
-        </button>
-
-        <button
-            type="button"
-            class="media-lightbox-prev"
-            aria-label="Previous"
-        >
-            ‹
-        </button>
-
-        <div class="media-lightbox-content">
-
-            <img
-                src=""
-                alt=""
-            >
-
-        </div>
-
-        <button
-            type="button"
-            class="media-lightbox-next"
-            aria-label="Next"
-        >
-            ›
-        </button>
-
-        <div
-            class="media-lightbox-counter"
-        ></div>
-
-    `;
-
-
-    document.body.appendChild(
-        wrapper
-    );
-
-
-    mediaLightbox =
-        wrapper;
-
-    mediaLightboxImage =
-        wrapper.querySelector(
-            ".media-lightbox-content img"
-        );
-
-    mediaLightboxCounter =
-        wrapper.querySelector(
-            ".media-lightbox-counter"
-        );
-
-
-    const closeButton =
-        wrapper.querySelector(
-            ".media-lightbox-close"
-        );
-
-    const prevButton =
-        wrapper.querySelector(
-            ".media-lightbox-prev"
-        );
-
-    const nextButton =
-        wrapper.querySelector(
-            ".media-lightbox-next"
-        );
-
-
-    closeButton.addEventListener(
-        "click",
-        closeMediaLightbox
-    );
-
-    prevButton.addEventListener(
-        "click",
-        () => {
-            showPreviousLightboxImage();
-        }
-    );
-
-    nextButton.addEventListener(
-        "click",
-        () => {
-            showNextLightboxImage();
-        }
-    );
-
-
-    wrapper.addEventListener(
-        "click",
-        event => {
-
-            if (
-                event.target ===
-                wrapper
-            ) {
-                closeMediaLightbox();
-            }
-        }
-    );
-
-
-    document.addEventListener(
-        "keydown",
-        event => {
-
-            if (
-                !mediaLightbox ||
-                !mediaLightbox.classList.contains(
-                    "active"
-                )
-            ) {
-                return;
-            }
-
-            if (
-                event.key ===
-                "Escape"
-            ) {
-                closeMediaLightbox();
-            }
-
-            if (
-                event.key ===
-                "ArrowLeft"
-            ) {
-                showPreviousLightboxImage();
-            }
-
-            if (
-                event.key ===
-                "ArrowRight"
-            ) {
-                showNextLightboxImage();
-            }
-        }
-    );
-}
-
-
-/* =========================================================
-   OPEN LIGHTBOX
-========================================================= */
-
-function openMediaLightbox(
-    imageData,
-    index
-) {
-
-    if (!mediaLightbox) {
-        createMediaLightbox();
-    }
-
-    if (!imageData) {
-        return;
-    }
-
-    lightboxIndex =
-        index || 0;
-
-
-    mediaLightboxImage.src =
-        imageData.src;
-
-    mediaLightboxImage.alt =
-        imageData.alt ||
-        "";
-
-
-    updateLightboxCounter();
-
-
-    mediaLightbox.classList.add(
-        "active"
-    );
-
-    document.body.classList.add(
-        "lightbox-open"
-    );
-}
-
-
-/* =========================================================
-   CLOSE LIGHTBOX
-========================================================= */
-
-function closeMediaLightbox() {
-
-    if (!mediaLightbox) {
-        return;
-    }
-
-    mediaLightbox.classList.remove(
-        "active"
-    );
-
-    document.body.classList.remove(
-        "lightbox-open"
-    );
-}
-
-
-/* =========================================================
-   PREVIOUS
-========================================================= */
-
-function showPreviousLightboxImage() {
-
-    if (
-        !lightboxImages.length
-    ) {
-        return;
-    }
-
-    lightboxIndex =
-        (
-            lightboxIndex -
-            1 +
-            lightboxImages.length
-        ) %
-        lightboxImages.length;
-
-    updateLightboxImage();
-}
-
-
-/* =========================================================
-   NEXT
-========================================================= */
-
-function showNextLightboxImage() {
-
-    if (
-        !lightboxImages.length
-    ) {
-        return;
-    }
-
-    lightboxIndex =
-        (
-            lightboxIndex +
-            1
-        ) %
-        lightboxImages.length;
-
-    updateLightboxImage();
-}
-
-
-/* =========================================================
-   UPDATE LIGHTBOX IMAGE
-========================================================= */
-
-function updateLightboxImage() {
-
-    const imageData =
-        lightboxImages[
-            lightboxIndex
-        ];
-
-    if (!imageData) {
-        return;
-    }
-
-    mediaLightboxImage.src =
-        imageData.src;
-
-    mediaLightboxImage.alt =
-        imageData.alt ||
-        "";
-
-    updateLightboxCounter();
-}
-
-
-/* =========================================================
-   LIGHTBOX COUNTER
-========================================================= */
-
-function updateLightboxCounter() {
-
-    if (!mediaLightboxCounter) {
-        return;
-    }
-
-    if (
-        lightboxImages.length <= 1
-    ) {
-
-        mediaLightboxCounter.textContent =
-            "";
-
-        return;
-    }
-
-    mediaLightboxCounter.textContent =
-        `${lightboxIndex + 1} / ${
-            lightboxImages.length
-        }`;
-}
-
-
-/* =========================================================
-   INSTAGRAM
-========================================================= */
-
-async function loadInstagram() {
+async function loadInstagramFeeds() {
 
     for (
         const account
         of INSTAGRAM_ACCOUNTS
     ) {
 
-        await loadInstagramAccount(
-            account
-        );
+        try {
+
+            await loadInstagramAccount(
+                account
+            );
+
+        } catch (error) {
+
+            console.error(
+                `Instagram error: ${account.key}`,
+                error
+            );
+        }
     }
 }
 
 
 /* =========================================================
-   LOAD ONE INSTAGRAM ACCOUNT
+   LOAD INSTAGRAM ACCOUNT
 ========================================================= */
 
 async function loadInstagramAccount(
@@ -2409,59 +2672,68 @@ async function loadInstagramAccount(
             account.elementId
         );
 
+
     if (!container) {
         return;
     }
 
+
     try {
 
-        const url =
-            `${INSTAGRAM_API_URL}?username=${encodeURIComponent(
-                account.username
-            )}&limit=${INSTAGRAM_POST_LIMIT}`;
-
         const response =
-            await fetch(url);
+            await fetch(
+                `${INSTAGRAM_API_URL}?username=${encodeURIComponent(
+                    account.username.replace(
+                        "@",
+                        ""
+                    )
+                )}`,
+                {
+                    cache: "no-store"
+                }
+            );
+
 
         if (!response.ok) {
+
             throw new Error(
-                `Instagram API returned ${response.status}`
+                `HTTP ${response.status}`
             );
         }
+
 
         const data =
             await response.json();
 
+
         const posts =
-            Array.isArray(data)
+            Array.isArray(
+                data
+            )
                 ? data
-                : Array.isArray(
-                    data.posts
-                )
-                    ? data.posts
-                    : Array.isArray(
-                        data.data
-                    )
-                        ? data.data
-                        : [];
+                : data.posts ||
+                  data.data ||
+                  [];
+
 
         renderInstagramPosts(
             container,
-            posts
+            posts.slice(
+                0,
+                INSTAGRAM_POST_LIMIT
+            )
         );
+
 
     } catch (error) {
 
         console.error(
-            `Instagram error for ${account.username}:`,
+            "Failed to load Instagram:",
             error
         );
 
-        container.innerHTML = `
-            <div class="instagram-empty">
-                Unable to load Instagram posts.
-            </div>
-        `;
+
+        container.innerHTML = "";
     }
 }
 
@@ -2475,167 +2747,89 @@ function renderInstagramPosts(
     posts
 ) {
 
-    if (!posts.length) {
+    if (!container) {
+        return;
+    }
 
-        container.innerHTML = `
-            <div class="instagram-empty">
-                No Instagram posts available.
-            </div>
-        `;
+
+    container.innerHTML = "";
+
+
+    if (
+        !Array.isArray(
+            posts
+        ) ||
+        posts.length === 0
+    ) {
 
         return;
     }
 
 
-    container.innerHTML =
-        posts
-            .slice(
-                0,
-                INSTAGRAM_POST_LIMIT
-            )
-            .map(
-                post =>
-                    createInstagramPost(
-                        post
-                    )
-            )
-            .join("");
-}
+    posts.forEach(
+        post => {
+
+            const item =
+                document.createElement(
+                    "a"
+                );
 
 
-/* =========================================================
-   INSTAGRAM POST CARD
-========================================================= */
-
-function createInstagramPost(
-    post
-) {
-
-    const image =
-        post.image ||
-        post.thumbnail ||
-        post.display_url ||
-        post.displayUrl ||
-        "";
-
-    const url =
-        post.url ||
-        post.permalink ||
-        post.link ||
-        "#";
-
-    const caption =
-        post.caption ||
-        "";
+            item.className =
+                "instagram-item";
 
 
-    return `
-        <a
-            class="instagram-post"
-            href="${escapeAttribute(
-                url
-            )}"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
+            item.href =
+                post.permalink ||
+                post.url ||
+                "#";
 
-            ${
-                image
-                    ? `
-                        <img
-                            src="${escapeAttribute(
-                                image
-                            )}"
-                            alt="${escapeAttribute(
-                                caption
-                            )}"
-                            loading="lazy"
-                        >
-                    `
-                    : `
-                        <div class="instagram-post-empty">
-                            Instagram
-                        </div>
-                    `
+
+            item.target =
+                "_blank";
+
+
+            item.rel =
+                "noopener noreferrer";
+
+
+            const image =
+                post.thumbnail_url ||
+                post.media_url ||
+                post.image ||
+                post.image_url ||
+                "";
+
+
+            if (image) {
+
+                item.innerHTML = `
+                    <img
+                        src="${escapeHTML(
+                            image
+                        )}"
+                        alt=""
+                        loading="lazy"
+                    >
+                `;
+
+            } else {
+
+                item.innerHTML = `
+                    <div
+                        class="instagram-placeholder"
+                    >
+                        Instagram
+                    </div>
+                `;
             }
 
-        </a>
-    `;
-}
 
-
-/* =========================================================
-   DATE PARSER
-========================================================= */
-
-function parseEventDate(
-    value
-) {
-
-    if (!value) {
-        return null;
-    }
-
-
-    if (
-        value instanceof Date
-    ) {
-        return isNaN(
-            value.getTime()
-        )
-            ? null
-            : value;
-    }
-
-
-    const parsed =
-        new Date(value);
-
-
-    if (
-        !isNaN(
-            parsed.getTime()
-        )
-    ) {
-        return parsed;
-    }
-
-
-    /*
-     * Try common formats.
-     */
-    const match =
-        String(value).match(
-            /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/
-        );
-
-    if (match) {
-
-        const month =
-            Number(match[1]) - 1;
-
-        const day =
-            Number(match[2]);
-
-        const year =
-            Number(match[3]);
-
-        const date =
-            new Date(
-                year,
-                month,
-                day
+            container.appendChild(
+                item
             );
-
-        return isNaN(
-            date.getTime()
-        )
-            ? null
-            : date;
-    }
-
-
-    return null;
+        }
+    );
 }
 
 
@@ -2647,8 +2841,16 @@ function escapeHTML(
     value
 ) {
 
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
+
     return String(
-        value ?? ""
+        value
     )
         .replace(
             /&/g,
@@ -2670,18 +2872,4 @@ function escapeHTML(
             /'/g,
             "&#039;"
         );
-}
-
-
-/* =========================================================
-   ESCAPE ATTRIBUTE
-========================================================= */
-
-function escapeAttribute(
-    value
-) {
-
-    return escapeHTML(
-        value
-    );
 }
