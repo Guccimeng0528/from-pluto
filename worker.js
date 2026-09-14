@@ -11,7 +11,7 @@ export default {
     // Notion Events API
     // =====================================================
 
-    if (url.pathname === "/api/events") {
+    if (url.pathname === "/data/events") {
       return getSchedule(request, env, ctx);
     }
 
