@@ -1,13 +1,35 @@
 /* =========================================================
    FROM PLUTO — WORKER
    Notion Event API + Notion Page Content
+
+   FIXED:
+   - Notion multiple columns
+   - column_list → column → children
+   - Images inside every column
+   - Videos inside every column
+   - Nested blocks
+   - Pagination
+   - Cache versioning
+
+   Author: Guccimeng
    ========================================================= */
 
+/* =========================================================
+   CONFIG
+========================================================= */
+
 const NOTION_VERSION = "2026-03-11";
-const DATA_SOURCE_ID = "2dd3ab68-3eeb-8161-af9d-000b72ae36d6";
-
+const DATA_SOURCE_ID =
+    "2dd3ab68-3eeb-8161-af9d-000b72ae36d6";
 const CACHE_TTL = 300;
-
+/*
+ * Change this number whenever you make
+ * a major Worker/content retrieval change.
+ *
+ * This prevents old Cloudflare cache from
+ * hiding the new result.
+ */
+const CACHE_VERSION = "v2";
 
 /* =========================================================
    MAIN
@@ -15,28 +37,56 @@ const CACHE_TTL = 300;
 
 export default {
     async fetch(request, env, ctx) {
+        const url =
+            new URL(request.url);
 
-        const url = new URL(request.url);
+        /* =================================================
+           EVENTS
+        ================================================= */
 
-        /* EVENTS */
-        if (url.pathname === "/data/events") {
-            return getSchedule(request, env, ctx);
+        if (
+            url.pathname ===
+            "/data/events"
+        ) {
+
+            return getSchedule(
+                request,
+                env,
+                ctx
+            );
         }
 
-        /* PAGE CONTENT */
-        if (url.pathname.startsWith("/data/content/")) {
+
+        /* =================================================
+           PAGE CONTENT
+        ================================================= */
+
+        if (
+            url.pathname.startsWith(
+                "/data/content/"
+            )
+        ) {
 
             const pageId =
                 decodeURIComponent(
-                    url.pathname.replace("/data/content/", "")
+                    url.pathname.replace(
+                        "/data/content/",
+                        ""
+                    )
                 );
 
+
             if (!pageId) {
+
                 return jsonResponse(
-                    { error: "Missing page ID" },
+                    {
+                        error:
+                            "Missing page ID"
+                    },
                     400
                 );
             }
+
 
             return getPageContent(
                 request,
@@ -47,46 +97,77 @@ export default {
         }
 
 
-        /* CLEAN ROUTES */
+        /* =================================================
+           CLEAN ROUTES
+        ================================================= */
 
-        if (url.pathname === "/") {
+        if (
+            url.pathname === "/"
+        ) {
+
             return env.ASSETS.fetch(
                 new Request(
-                    new URL("/index.html", request.url),
-                    request
-                )
-            );
-        }
-
-        if (url.pathname === "/profile") {
-            return env.ASSETS.fetch(
-                new Request(
-                    new URL("/profile.html", request.url),
-                    request
-                )
-            );
-        }
-
-        if (url.pathname === "/schedule") {
-            return env.ASSETS.fetch(
-                new Request(
-                    new URL("/schedule.html", request.url),
-                    request
-                )
-            );
-        }
-
-        if (url.pathname === "/archive") {
-            return env.ASSETS.fetch(
-                new Request(
-                    new URL("/archive.html", request.url),
+                    new URL(
+                        "/index.html",
+                        request.url
+                    ),
                     request
                 )
             );
         }
 
 
-        return env.ASSETS.fetch(request);
+        if (
+            url.pathname === "/profile"
+        ) {
+
+            return env.ASSETS.fetch(
+                new Request(
+                    new URL(
+                        "/profile.html",
+                        request.url
+                    ),
+                    request
+                )
+            );
+        }
+
+
+        if (
+            url.pathname === "/schedule"
+        ) {
+
+            return env.ASSETS.fetch(
+                new Request(
+                    new URL(
+                        "/schedule.html",
+                        request.url
+                    ),
+                    request
+                )
+            );
+        }
+
+
+        if (
+            url.pathname === "/archive"
+        ) {
+
+            return env.ASSETS.fetch(
+                new Request(
+                    new URL(
+                        "/archive.html",
+                        request.url
+                    ),
+                    request
+                )
+            );
+        }
+
+
+        return env.ASSETS.fetch(
+            request
+        );
     }
 };
 
@@ -95,33 +176,61 @@ export default {
    EVENTS
 ========================================================= */
 
-async function getSchedule(request, env, ctx) {
+async function getSchedule(
+    request,
+    env,
+    ctx
+) {
 
     if (!env.NOTION_TOKEN) {
+
         return jsonResponse(
             {
-                error: "NOTION_TOKEN is not configured"
+                error:
+                    "NOTION_TOKEN is not configured"
             },
             500
         );
     }
 
+
     const cache =
         caches.default;
 
+
+    /*
+     * Cache version is included here.
+     *
+     * v2 = new multi-column loader
+     */
+
+    const cacheUrl =
+        new URL(
+            "/data/events",
+            request.url
+        );
+
+    cacheUrl.searchParams.set(
+        "_cache",
+        CACHE_VERSION
+    );
+
+
     const cacheKey =
         new Request(
-            new URL(
-                "/data/events",
-                request.url
-            ),
+            cacheUrl.toString(),
             request
         );
 
+
     const cached =
-        await cache.match(cacheKey);
+        await cache.match(
+            cacheKey
+        );
+
 
     if (cached) {
+
         return cached;
     }
 
@@ -130,8 +239,13 @@ async function getSchedule(request, env, ctx) {
 
         const pages = [];
 
-        let startCursor = undefined;
+        let startCursor =
+            undefined;
 
+
+        /* ===============================================
+           PAGINATED DATABASE QUERY
+        =============================================== */
 
         do {
 
@@ -139,7 +253,9 @@ async function getSchedule(request, env, ctx) {
                 page_size: 100
             };
 
+
             if (startCursor) {
+
                 body.start_cursor =
                     startCursor;
             }
@@ -149,9 +265,11 @@ async function getSchedule(request, env, ctx) {
                 await fetch(
                     `https://api.notion.com/v1/data_sources/${DATA_SOURCE_ID}/query`,
                     {
-                        method: "POST",
+                        method:
+                            "POST",
 
                         headers: {
+
                             "Authorization":
                                 `Bearer ${env.NOTION_TOKEN}`,
 
@@ -163,7 +281,9 @@ async function getSchedule(request, env, ctx) {
                         },
 
                         body:
-                            JSON.stringify(body)
+                            JSON.stringify(
+                                body
+                            )
                     }
                 );
 
@@ -172,6 +292,7 @@ async function getSchedule(request, env, ctx) {
 
                 const text =
                     await response.text();
+
 
                 throw new Error(
                     `Notion API ${response.status}: ${text}`
@@ -199,12 +320,19 @@ async function getSchedule(request, env, ctx) {
 
         const events =
             pages
-                .map(convertPageToEvent)
-                .filter(event => event.Date);
+                .map(
+                    convertPageToEvent
+                )
+                .filter(
+                    event =>
+                        event.Date
+                );
 
 
         const response =
-            jsonResponse(events);
+            jsonResponse(
+                events
+            );
 
 
         response.headers.set(
@@ -248,30 +376,28 @@ async function getSchedule(request, env, ctx) {
    CONVERT EVENT
 ========================================================= */
 
-function convertPageToEvent(page) {
+function convertPageToEvent(
+    page
+) {
 
     return {
 
         PageID:
             page.id || null,
 
+
         Name:
             getPropertyValue(
                 page.properties?.Name
             ),
+
 
         Date:
             getPropertyValue(
                 page.properties?.Date
             ),
 
-        /*
-         * Keep database Image property
-         * if available.
-         *
-         * Page content images are handled separately
-         * through /data/content/{PageID}.
-         */
+
         Image:
             getPropertyValue(
                 page.properties?.Image
@@ -280,35 +406,42 @@ function convertPageToEvent(page) {
             page.cover?.external?.url ||
             null,
 
+
         Hashtag:
             getPropertyValue(
                 page.properties?.Hashtag
             ),
+
 
         KW:
             getPropertyValue(
                 page.properties?.KW
             ),
 
+
         Location:
             getPropertyValue(
                 page.properties?.Location
             ),
+
 
         NAMTANFILM:
             getPropertyValue(
                 page.properties?.NAMTANFILM
             ),
 
+
         Type:
             getPropertyValue(
                 page.properties?.Type
             ),
 
+
         Year:
             getPropertyValue(
                 page.properties?.Year
             ),
+
 
         Link:
             getPropertyValue(
@@ -322,86 +455,123 @@ function convertPageToEvent(page) {
    NOTION PROPERTY VALUE
 ========================================================= */
 
-function getPropertyValue(property) {
+function getPropertyValue(
+    property
+) {
 
     if (!property) {
+
         return null;
     }
 
 
-    switch (property.type) {
+    switch (
+        property.type
+    ) {
+
 
         case "title":
+
             return richTextToPlainText(
                 property.title
             );
 
 
         case "rich_text":
+
             return richTextToPlainText(
                 property.rich_text
             );
 
 
         case "select":
-            return property.select?.name || null;
+
+            return (
+                property.select?.name ||
+                null
+            );
 
 
         case "multi_select":
+
             return (
-                property.multi_select || []
-            ).map(item => item.name);
+                property.multi_select ||
+                []
+            ).map(
+                item =>
+                    item.name
+            );
 
 
         case "date":
-            return property.date?.start || null;
+
+            return (
+                property.date?.start ||
+                null
+            );
 
 
         case "number":
+
             return property.number;
 
 
         case "checkbox":
+
             return property.checkbox;
 
 
         case "url":
+
             return property.url;
 
 
         case "email":
+
             return property.email;
 
 
         case "formula":
 
+
             if (
                 property.formula?.type ===
                 "string"
             ) {
+
                 return property.formula.string;
             }
+
 
             if (
                 property.formula?.type ===
                 "number"
             ) {
+
                 return property.formula.number;
             }
+
 
             if (
                 property.formula?.type ===
                 "boolean"
             ) {
+
                 return property.formula.boolean;
             }
+
 
             if (
                 property.formula?.type ===
                 "date"
             ) {
-                return property.formula.date?.start;
+
+                return (
+                    property.formula.date?.start ||
+                    null
+                );
             }
+
 
             return null;
 
@@ -410,40 +580,62 @@ function getPropertyValue(property) {
 
             return (
                 property.files || []
-            ).map(file => {
+            )
+                .map(
+                    file => {
 
-                if (file.type === "file") {
-                    return file.file?.url;
-                }
+                        if (
+                            file.type ===
+                            "file"
+                        ) {
 
-                if (file.type === "external") {
-                    return file.external?.url;
-                }
+                            return file.file?.url;
+                        }
 
-                return null;
 
-            }).filter(Boolean);
+                        if (
+                            file.type ===
+                            "external"
+                        ) {
+
+                            return file.external?.url;
+                        }
+
+
+                        return null;
+                    }
+                )
+                .filter(Boolean);
 
 
         default:
+
             return null;
     }
 }
 
 
 /* =========================================================
-   RICH TEXT
+   RICH TEXT → PLAIN TEXT
 ========================================================= */
 
-function richTextToPlainText(items) {
+function richTextToPlainText(
+    items
+) {
 
-    if (!Array.isArray(items)) {
+    if (
+        !Array.isArray(items)
+    ) {
+
         return null;
     }
 
+
     return items
-        .map(item =>
-            item.plain_text || ""
+        .map(
+            item =>
+                item.plain_text ||
+                ""
         )
         .join("");
 }
@@ -461,6 +653,7 @@ async function getPageContent(
 ) {
 
     if (!env.NOTION_TOKEN) {
+
         return jsonResponse(
             {
                 error:
@@ -475,26 +668,51 @@ async function getPageContent(
         caches.default;
 
 
+    /*
+     * Include cache version.
+     *
+     * This prevents old content from
+     * being returned after deployment.
+     */
+
+    const cacheUrl =
+        new URL(
+            `/data/content/${encodeURIComponent(pageId)}`,
+            request.url
+        );
+
+
+    cacheUrl.searchParams.set(
+        "_cache",
+        CACHE_VERSION
+    );
+
+
     const cacheKey =
         new Request(
-            new URL(
-                `/data/content/${encodeURIComponent(pageId)}`,
-                request.url
-            ),
+            cacheUrl.toString(),
             request
         );
 
 
     const cached =
-        await cache.match(cacheKey);
+        await cache.match(
+            cacheKey
+        );
 
 
     if (cached) {
+
         return cached;
     }
 
 
     try {
+
+        console.log(
+            `[Notion] Loading page: ${pageId}`
+        );
+
 
         const blocks =
             await getAllBlocks(
@@ -503,15 +721,24 @@ async function getPageContent(
             );
 
 
+        console.log(
+            `[Notion] Top-level blocks: ${blocks.length}`
+        );
+
+
         const html =
-            renderBlocks(blocks);
+            renderBlocks(
+                blocks
+            );
 
 
         const response =
-            jsonResponse({
-                pageId,
-                content: html
-            });
+            jsonResponse(
+                {
+                    pageId,
+                    content: html
+                }
+            );
 
 
         response.headers.set(
@@ -552,17 +779,19 @@ async function getPageContent(
 
 
 /* =========================================================
-   GET ALL BLOCKS
+   NOTION API
+   GET CHILDREN
 ========================================================= */
 
-async function getAllBlocks(
+async function fetchBlockChildren(
     env,
     blockId
 ) {
 
-    const allBlocks = [];
+    const results = [];
 
-    let cursor = undefined;
+    let cursor =
+        undefined;
 
 
     do {
@@ -580,6 +809,7 @@ async function getAllBlocks(
 
 
         if (cursor) {
+
             url.searchParams.set(
                 "start_cursor",
                 cursor
@@ -591,7 +821,11 @@ async function getAllBlocks(
             await fetch(
                 url,
                 {
+                    method:
+                        "GET",
+
                     headers: {
+
                         "Authorization":
                             `Bearer ${env.NOTION_TOKEN}`,
 
@@ -607,6 +841,7 @@ async function getAllBlocks(
             const text =
                 await response.text();
 
+
             throw new Error(
                 `Notion blocks API ${response.status}: ${text}`
             );
@@ -617,35 +852,9 @@ async function getAllBlocks(
             await response.json();
 
 
-        for (
-            const block
-            of data.results || []
-        ) {
-
-            allBlocks.push(block);
-
-
-            /*
-             * IMPORTANT:
-             *
-             * Notion Grid uses nested
-             * column_list / column blocks.
-             *
-             * Recursively fetch children.
-             */
-            if (block.has_children) {
-
-                const children =
-                    await getAllBlocks(
-                        env,
-                        block.id
-                    );
-
-
-                block._children =
-                    children;
-            }
-        }
+        results.push(
+            ...(data.results || [])
+        );
 
 
         cursor =
@@ -657,477 +866,760 @@ async function getAllBlocks(
     } while (cursor);
 
 
-    return allBlocks;
+    return results;
 }
 
 
-
 /* =========================================================
-   RENDER BLOCKS
-   Supports:
-   - normal blocks
-   - nested blocks
-   - column_list / column
-   - multiple columns of images
-   - Masonry media grid
+   GET ALL BLOCKS
+=========================================================
+
+   IMPORTANT:
+
+   Notion column structure:
+
+       Page
+         │
+         └── column_list
+                │
+                ├── column
+                │     ├── image
+                │     ├── image
+                │     └── text
+                │
+                ├── column
+                │     ├── image
+                │     └── image
+                │
+                └── column
+                      ├── image
+                      └── image
+
+
+   We explicitly fetch:
+
+       page
+        ↓
+       column_list
+        ↓
+       EVERY column
+        ↓
+       EVERY child in every column
+
 ========================================================= */
 
-function renderBlocks(blocks) {
+async function getAllBlocks(
+    env,
+    blockId
+) {
 
-    if (!Array.isArray(blocks)) {
-        return "";
-    }
-
-    let html = "";
-    let currentList = null;
-
-    const closeList = () => {
-
-        if (currentList === "bulleted") {
-            html += "</ul>";
-        }
-
-        if (currentList === "numbered") {
-            html += "</ol>";
-        }
-
-        currentList = null;
-    };
+    const topLevelBlocks =
+        await fetchBlockChildren(
+            env,
+            blockId
+        );
 
 
     /*
-     * Render a normal block.
-     */
-    const renderSingleBlock = (block) => {
-
-        if (!block) {
-            return "";
-        }
-
-        const type = block.type;
-
-
-        /* =========================
-           IMAGE
-        ========================= */
-
-        if (type === "image") {
-
-            return renderImageBlock(
-                block.image
-            );
-        }
-
-
-        /* =========================
-           VIDEO
-        ========================= */
-
-        if (type === "video") {
-
-            return renderVideoBlock(
-                block.video
-            );
-        }
-
-
-        /* =========================
-           PARAGRAPH
-        ========================= */
-
-        if (type === "paragraph") {
-
-            const text =
-                renderRichText(
-                    block.paragraph?.rich_text
-                );
-
-            return text.trim()
-                ? `<p>${text}</p>`
-                : "";
-        }
-
-
-        /* =========================
-           HEADINGS
-        ========================= */
-
-        if (type === "heading_1") {
-
-            return `
-                <h1>
-                    ${renderRichText(
-                        block.heading_1?.rich_text
-                    )}
-                </h1>
-            `;
-        }
-
-
-        if (type === "heading_2") {
-
-            return `
-                <h2>
-                    ${renderRichText(
-                        block.heading_2?.rich_text
-                    )}
-                </h2>
-            `;
-        }
-
-
-        if (type === "heading_3") {
-
-            return `
-                <h3>
-                    ${renderRichText(
-                        block.heading_3?.rich_text
-                    )}
-                </h3>
-            `;
-        }
-
-
-        /* =========================
-           QUOTE
-        ========================= */
-
-        if (type === "quote") {
-
-            return `
-                <blockquote>
-                    ${renderRichText(
-                        block.quote?.rich_text
-                    )}
-                </blockquote>
-            `;
-        }
-
-
-        /* =========================
-           CALLOUT
-        ========================= */
-
-        if (type === "callout") {
-
-            const callout =
-                block.callout;
-
-            const icon =
-                callout?.icon?.emoji || "";
-
-            return `
-                <div class="notion-callout">
-
-                    <div class="notion-callout-icon">
-                        ${escapeHTML(icon)}
-                    </div>
-
-                    <div>
-                        ${renderRichText(
-                            callout?.rich_text
-                        )}
-                    </div>
-
-                </div>
-            `;
-        }
-
-
-        /* =========================
-           DIVIDER
-        ========================= */
-
-        if (type === "divider") {
-            return "<hr>";
-        }
-
-
-        /* =========================
-           EMBED
-        ========================= */
-
-        if (type === "embed") {
-
-            const url =
-                block.embed?.url;
-
-            if (!url) {
-                return "";
-            }
-
-            return `
-                <div class="notion-embed">
-
-                    <a
-                        href="${escapeAttribute(url)}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        View embedded content →
-                    </a>
-
-                </div>
-            `;
-        }
-
-
-        /* =========================
-           BOOKMARK
-        ========================= */
-
-        if (type === "bookmark") {
-
-            const url =
-                block.bookmark?.url;
-
-            if (!url) {
-                return "";
-            }
-
-            return `
-                <div class="notion-bookmark">
-
-                    <a
-                        href="${escapeAttribute(url)}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        ${escapeHTML(url)}
-                    </a>
-
-                </div>
-            `;
-        }
-
-
-        /* =========================
-           CODE
-        ========================= */
-
-        if (type === "code") {
-
-            const code =
-                block.code?.rich_text
-                    ?.map(item =>
-                        item.plain_text || ""
-                    )
-                    .join("") || "";
-
-            return `
-                <pre>
-                    <code>
-                        ${escapeHTML(code)}
-                    </code>
-                </pre>
-            `;
-        }
-
-
-        /* =========================
-           TO DO
-        ========================= */
-
-        if (type === "to_do") {
-
-            const todo =
-                block.to_do;
-
-            return `
-                <div class="notion-todo">
-
-                    <input
-                        type="checkbox"
-                        disabled
-                        ${todo?.checked ? "checked" : ""}
-                    >
-
-                    <span>
-                        ${renderRichText(
-                            todo?.rich_text
-                        )}
-                    </span>
-
-                </div>
-            `;
-        }
-
-
-        /* =========================
-           NESTED BLOCK
-        ========================= */
-
-        if (
-            block._children &&
-            block._children.length
-        ) {
-
-            return renderBlocks(
-                block._children
-            );
-        }
-
-
-        return "";
-    };
-
-
-    /*
-     * Collect ALL media blocks recursively.
-     *
-     * This is the important fix.
-     *
-     * Example:
-     *
-     * column_list
-     *   ├─ column
-     *   │   ├─ image
-     *   │   └─ image
-     *   │
-     *   ├─ column
-     *   │   ├─ image
-     *   │   └─ image
-     *   │
-     *   └─ column
-     *       ├─ image
-     *       └─ image
-     *
-     * becomes ONE media grid.
+     * Process every top-level block.
      */
 
-    const collectMediaBlocks = (items) => {
-
-        const media = [];
-
-        if (!Array.isArray(items)) {
-            return media;
-        }
-
-        for (const item of items) {
-
-            if (!item) {
-                continue;
-            }
-
-            if (
-                item.type === "image" ||
-                item.type === "video"
-            ) {
-
-                media.push(item);
-
-                continue;
-            }
-
-            if (
-                item._children &&
-                item._children.length
-            ) {
-
-                media.push(
-                    ...collectMediaBlocks(
-                        item._children
-                    )
-                );
-            }
-        }
-
-        return media;
-    };
-
-
-    /*
-     * Check whether a column_list contains
-     * only media / nested columns.
-     *
-     * If yes, we can safely flatten everything
-     * into one Masonry grid.
-     */
-
-    const isMediaOnlyColumnList = (items) => {
-
-        if (!Array.isArray(items)) {
-            return false;
-        }
-
-        for (const item of items) {
-
-            if (!item) {
-                continue;
-            }
-
-            const type =
-                item.type;
-
-            if (
-                type === "column"
-            ) {
-
-                if (
-                    !isMediaOnlyColumnList(
-                        item._children || []
-                    )
-                ) {
-                    return false;
-                }
-
-                continue;
-            }
-
-            if (
-                type === "column_list"
-            ) {
-
-                if (
-                    !isMediaOnlyColumnList(
-                        item._children || []
-                    )
-                ) {
-                    return false;
-                }
-
-                continue;
-            }
-
-            if (
-                type === "image" ||
-                type === "video"
-            ) {
-                continue;
-            }
-
-            /*
-             * Anything else means this is
-             * not a pure media grid.
-             */
-
-            return false;
-        }
-
-        return true;
-    };
-
-
-    /*
-     * Main loop
-     */
-
-    for (const block of blocks) {
+    for (
+        const block
+        of topLevelBlocks
+    ) {
 
         if (!block) {
             continue;
         }
 
+
+        /* =================================================
+           SPECIAL CASE: COLUMN LIST
+        ================================================= */
+
+        if (
+            block.type ===
+            "column_list"
+        ) {
+
+            console.log(
+                `[Notion] Found column_list: ${block.id}`
+            );
+
+
+            /*
+             * IMPORTANT:
+             *
+             * Explicitly request the children
+             * of the column_list.
+             */
+
+            const columns =
+                await fetchBlockChildren(
+                    env,
+                    block.id
+                );
+
+
+            /*
+             * Save ALL columns.
+             */
+
+            block._children =
+                columns;
+
+
+            console.log(
+                `[Notion] column_list ${block.id} contains ${columns.length} children`
+            );
+
+
+            /*
+             * IMPORTANT:
+             *
+             * Fetch EACH column separately.
+             */
+
+            for (
+                const column
+                of columns
+            ) {
+
+                if (
+                    !column ||
+                    column.type !==
+                    "column"
+                ) {
+
+                    continue;
+                }
+
+
+                console.log(
+                    `[Notion] Fetching column: ${column.id}`
+                );
+
+
+                const columnChildren =
+                    await fetchBlockChildren(
+                        env,
+                        column.id
+                    );
+
+
+                /*
+                 * Save ALL blocks inside
+                 * this specific column.
+                 */
+
+                column._children =
+                    columnChildren;
+
+
+                console.log(
+                    `[Notion] Column ${column.id} contains ${columnChildren.length} blocks`
+                );
+
+
+                /*
+                 * Continue recursively for
+                 * nested blocks inside the column.
+                 */
+
+                for (
+                    const child
+                    of columnChildren
+                ) {
+
+                    if (
+                        child &&
+                        child.has_children
+                    ) {
+
+                        child._children =
+                            await loadNestedChildren(
+                                env,
+                                child.id
+                            );
+                    }
+                }
+            }
+
+
+            /*
+             * Finished this column_list.
+             */
+
+            continue;
+        }
+
+
+        /* =================================================
+           NORMAL NESTED BLOCK
+        ================================================= */
+
+        if (
+            block.has_children
+        ) {
+
+            block._children =
+                await loadNestedChildren(
+                    env,
+                    block.id
+                );
+        }
+    }
+
+
+    return topLevelBlocks;
+}
+
+
+/* =========================================================
+   LOAD NESTED CHILDREN
+========================================================= */
+
+async function loadNestedChildren(
+    env,
+    blockId
+) {
+
+    const children =
+        await fetchBlockChildren(
+            env,
+            blockId
+        );
+
+
+    for (
+        const child
+        of children
+    ) {
+
+        if (!child) {
+            continue;
+        }
+
+
+        /*
+         * Nested column_list
+         */
+
+        if (
+            child.type ===
+            "column_list"
+        ) {
+
+            const columns =
+                await fetchBlockChildren(
+                    env,
+                    child.id
+                );
+
+
+            child._children =
+                columns;
+
+
+            for (
+                const column
+                of columns
+            ) {
+
+                if (
+                    !column ||
+                    column.type !==
+                    "column"
+                ) {
+
+                    continue;
+                }
+
+
+                column._children =
+                    await fetchBlockChildren(
+                        env,
+                        column.id
+                    );
+
+
+                for (
+                    const nested
+                    of column._children
+                ) {
+
+                    if (
+                        nested &&
+                        nested.has_children
+                    ) {
+
+                        nested._children =
+                            await loadNestedChildren(
+                                env,
+                                nested.id
+                            );
+                    }
+                }
+            }
+
+
+            continue;
+        }
+
+
+        /*
+         * Normal nested block
+         */
+
+        if (
+            child.has_children
+        ) {
+
+            child._children =
+                await loadNestedChildren(
+                    env,
+                    child.id
+                );
+        }
+    }
+
+
+    return children;
+}
+
+
+/* =========================================================
+   RENDER BLOCKS
+========================================================= */
+
+function renderBlocks(
+    blocks
+) {
+
+    if (
+        !Array.isArray(blocks)
+    ) {
+
+        return "";
+    }
+
+
+    let html = "";
+
+    let currentList =
+        null;
+
+
+    const closeList = () => {
+
+        if (
+            currentList ===
+            "bulleted"
+        ) {
+
+            html += "</ul>";
+        }
+
+
+        if (
+            currentList ===
+            "numbered"
+        ) {
+
+            html += "</ol>";
+        }
+
+
+        currentList =
+            null;
+    };
+
+
+    /* =====================================================
+       NORMAL BLOCK RENDERER
+    ===================================================== */
+
+    const renderSingleBlock =
+        (block) => {
+
+            if (!block) {
+                return "";
+            }
+
+
+            const type =
+                block.type;
+
+
+            /* =============================================
+               IMAGE
+            ============================================= */
+
+            if (
+                type === "image"
+            ) {
+
+                return renderImageBlock(
+                    block.image
+                );
+            }
+
+
+            /* =============================================
+               VIDEO
+            ============================================= */
+
+            if (
+                type === "video"
+            ) {
+
+                return renderVideoBlock(
+                    block.video
+                );
+            }
+
+
+            /* =============================================
+               PARAGRAPH
+            ============================================= */
+
+            if (
+                type ===
+                "paragraph"
+            ) {
+
+                const text =
+                    renderRichText(
+                        block.paragraph
+                            ?.rich_text
+                    );
+
+
+                return text.trim()
+                    ? `<p>${text}</p>`
+                    : "";
+            }
+
+
+            /* =============================================
+               HEADING 1
+            ============================================= */
+
+            if (
+                type ===
+                "heading_1"
+            ) {
+
+                return `
+                    <h1>
+                        ${renderRichText(
+                            block.heading_1
+                                ?.rich_text
+                        )}
+                    </h1>
+                `;
+            }
+
+
+            /* =============================================
+               HEADING 2
+            ============================================= */
+
+            if (
+                type ===
+                "heading_2"
+            ) {
+
+                return `
+                    <h2>
+                        ${renderRichText(
+                            block.heading_2
+                                ?.rich_text
+                        )}
+                    </h2>
+                `;
+            }
+
+
+            /* =============================================
+               HEADING 3
+            ============================================= */
+
+            if (
+                type ===
+                "heading_3"
+            ) {
+
+                return `
+                    <h3>
+                        ${renderRichText(
+                            block.heading_3
+                                ?.rich_text
+                        )}
+                    </h3>
+                `;
+            }
+
+
+            /* =============================================
+               QUOTE
+            ============================================= */
+
+            if (
+                type === "quote"
+            ) {
+
+                return `
+                    <blockquote>
+                        ${renderRichText(
+                            block.quote
+                                ?.rich_text
+                        )}
+                    </blockquote>
+                `;
+            }
+
+
+            /* =============================================
+               CALLOUT
+            ============================================= */
+
+            if (
+                type ===
+                "callout"
+            ) {
+
+                const callout =
+                    block.callout;
+
+
+                const icon =
+                    callout
+                        ?.icon
+                        ?.emoji ||
+                    "";
+
+
+                return `
+                    <div class="notion-callout">
+
+                        <div class="notion-callout-icon">
+                            ${escapeHTML(
+                                icon
+                            )}
+                        </div>
+
+                        <div>
+                            ${renderRichText(
+                                callout
+                                    ?.rich_text
+                            )}
+                        </div>
+
+                    </div>
+                `;
+            }
+
+
+            /* =============================================
+               DIVIDER
+            ============================================= */
+
+            if (
+                type ===
+                "divider"
+            ) {
+
+                return "<hr>";
+            }
+
+
+            /* =============================================
+               EMBED
+            ============================================= */
+
+            if (
+                type === "embed"
+            ) {
+
+                const url =
+                    block.embed?.url;
+
+
+                if (!url) {
+                    return "";
+                }
+
+
+                return `
+                    <div class="notion-embed">
+
+                        <a
+                            href="${escapeAttribute(
+                                url
+                            )}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            View embedded content →
+                        </a>
+
+                    </div>
+                `;
+            }
+
+
+            /* =============================================
+               BOOKMARK
+            ============================================= */
+
+            if (
+                type ===
+                "bookmark"
+            ) {
+
+                const url =
+                    block.bookmark?.url;
+
+
+                if (!url) {
+                    return "";
+                }
+
+
+                return `
+                    <div class="notion-bookmark">
+
+                        <a
+                            href="${escapeAttribute(
+                                url
+                            )}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            ${escapeHTML(
+                                url
+                            )}
+                        </a>
+
+                    </div>
+                `;
+            }
+
+
+            /* =============================================
+               CODE
+            ============================================= */
+
+            if (
+                type === "code"
+            ) {
+
+                const code =
+                    block.code
+                        ?.rich_text
+                        ?.map(
+                            item =>
+                                item.plain_text ||
+                                ""
+                        )
+                        .join("") ||
+                    "";
+
+
+                return `
+                    <pre>
+                        <code>
+                            ${escapeHTML(
+                                code
+                            )}
+                        </code>
+                    </pre>
+                `;
+            }
+
+
+            /* =============================================
+               TO DO
+            ============================================= */
+
+            if (
+                type === "to_do"
+            ) {
+
+                const todo =
+                    block.to_do;
+
+
+                return `
+                    <div class="notion-todo">
+
+                        <input
+                            type="checkbox"
+                            disabled
+                            ${
+                                todo?.checked
+                                    ? "checked"
+                                    : ""
+                            }
+                        >
+
+                        <span>
+                            ${renderRichText(
+                                todo?.rich_text
+                            )}
+                        </span>
+
+                    </div>
+                `;
+            }
+
+
+            /* =============================================
+               FALLBACK NESTED BLOCK
+            ============================================= */
+
+            if (
+                block._children &&
+                block._children.length
+            ) {
+
+                return renderBlocks(
+                    block._children
+                );
+            }
+
+
+            return "";
+        };
+
+
+    /* =====================================================
+       MAIN LOOP
+    ===================================================== */
+
+    for (
+        const block
+        of blocks
+    ) {
+
+        if (!block) {
+            continue;
+        }
+
+
         const type =
             block.type;
 
 
-        /* =========================
+        /* ===============================================
            BULLETED LIST
-        ========================= */
+        =============================================== */
 
         if (
-            type === "bulleted_list_item"
+            type ===
+            "bulleted_list_item"
         ) {
 
             if (
@@ -1143,12 +1635,16 @@ function renderBlocks(blocks) {
                     "bulleted";
             }
 
+
             html += `
                 <li>
                     ${renderRichText(
-                        block.bulleted_list_item?.rich_text
+                        block
+                            .bulleted_list_item
+                            ?.rich_text
                     )}
             `;
+
 
             if (
                 block._children?.length
@@ -1160,18 +1656,21 @@ function renderBlocks(blocks) {
                     );
             }
 
+
             html += "</li>";
+
 
             continue;
         }
 
 
-        /* =========================
+        /* ===============================================
            NUMBERED LIST
-        ========================= */
+        =============================================== */
 
         if (
-            type === "numbered_list_item"
+            type ===
+            "numbered_list_item"
         ) {
 
             if (
@@ -1187,12 +1686,16 @@ function renderBlocks(blocks) {
                     "numbered";
             }
 
+
             html += `
                 <li>
                     ${renderRichText(
-                        block.numbered_list_item?.rich_text
+                        block
+                            .numbered_list_item
+                            ?.rich_text
                     )}
             `;
+
 
             if (
                 block._children?.length
@@ -1204,7 +1707,9 @@ function renderBlocks(blocks) {
                     );
             }
 
+
             html += "</li>";
+
 
             continue;
         }
@@ -1213,76 +1718,116 @@ function renderBlocks(blocks) {
         closeList();
 
 
-       /* =========================
-   COLUMN LIST
-========================= */
+        /* ===============================================
+           COLUMN LIST
+        =============================================== */
 
-if (type === "column_list") {
+        if (
+            type ===
+            "column_list"
+        ) {
 
-    const columns =
-        (block._children || [])
-            .filter(child =>
-                child &&
-                child.type === "column"
+            const columns =
+                (
+                    block._children ||
+                    []
+                )
+                .filter(
+                    child =>
+                        child &&
+                        child.type ===
+                        "column"
+                );
+
+
+            console.log(
+                `[Render] column_list → ${columns.length} columns`
             );
 
-    /*
-     * IMPORTANT
-     *
-     * Do NOT use isMediaOnlyColumnList()
-     * here.
-     *
-     * Notion columns may contain:
-     * - images
-     * - videos
-     * - text
-     * - captions
-     * - dividers
-     * - other blocks
-     *
-     * We must render EVERY column.
-     */
 
-    html += `
-        <div class="notion-grid notion-column-list">
-    `;
+            /*
+             * IMPORTANT:
+             *
+             * Every column is rendered.
+             *
+             * Nothing is flattened.
+             * Nothing is ignored.
+             */
 
-    for (const column of columns) {
-
-        html += `
-            <div class="notion-column">
-                ${renderBlocks(
-                    column._children || []
-                )}
-            </div>
-        `;
-    }
-
-    html += `
-        </div>
-    `;
-
-    continue;
-}
+            html += `
+                <div
+                    class="notion-column-list"
+                >
+            `;
 
 
- /* =========================
-   COLUMN
-========================= */
+            for (
+                let i = 0;
+                i < columns.length;
+                i++
+            ) {
 
-if (type === "column") {
-
-    html += renderBlocks(
-        block._children || []
-    );
-
-    continue;
-}
+                const column =
+                    columns[i];
 
 
-        /* =========================
+                html += `
+                    <div
+                        class="notion-column"
+                        data-column-index="${i}"
+                        data-column-id="${escapeAttribute(
+                            column.id || ""
+                        )}"
+                    >
+                        ${renderBlocks(
+                            column._children ||
+                            []
+                        )}
+                    </div>
+                `;
+            }
+
+
+            html += `
+                </div>
+            `;
+
+
+            continue;
+        }
+
+
+        /* ===============================================
+           COLUMN
+        =============================================== */
+
+        if (
+            type ===
+            "column"
+        ) {
+
+            /*
+             * Normally column is handled
+             * by column_list above.
+             *
+             * This fallback keeps nested
+             * column blocks working.
+             */
+
+            html +=
+                renderBlocks(
+                    block._children ||
+                    []
+                );
+
+
+            continue;
+        }
+
+
+        /* ===============================================
            NORMAL BLOCK
-        ========================= */
+        =============================================== */
 
         html +=
             renderSingleBlock(
@@ -1298,31 +1843,46 @@ if (type === "column") {
 }
 
 
-
 /* =========================================================
    IMAGE BLOCK
 ========================================================= */
 
-function renderImageBlock(image) {
+function renderImageBlock(
+    image
+) {
 
     if (!image) {
         return "";
     }
 
 
-    let url = null;
+    let url =
+        null;
 
 
-    if (image.type === "file") {
+    /* ================================================
+       NOTION HOSTED IMAGE
+    ================================================ */
+
+    if (
+        image.type ===
+        "file"
+    ) {
+
         url =
             image.file?.url;
     }
 
 
+    /* ================================================
+       EXTERNAL IMAGE
+    ================================================ */
+
     if (
         image.type ===
         "external"
     ) {
+
         url =
             image.external?.url;
     }
@@ -1343,10 +1903,15 @@ function renderImageBlock(image) {
         <figure
             class="notion-media-item notion-image-item"
         >
+
             <img
-                src="${escapeAttribute(url)}"
+                src="${escapeAttribute(
+                    url
+                )}"
                 alt="${escapeAttribute(
-                    stripHTML(caption) ||
+                    stripHTML(
+                        caption
+                    ) ||
                     "Event image"
                 )}"
                 loading="lazy"
@@ -1356,9 +1921,14 @@ function renderImageBlock(image) {
 
             ${
                 caption
-                    ? `<figcaption>${caption}</figcaption>`
+                    ? `
+                        <figcaption>
+                            ${caption}
+                        </figcaption>
+                    `
                     : ""
             }
+
         </figure>
     `;
 }
@@ -1368,17 +1938,24 @@ function renderImageBlock(image) {
    VIDEO BLOCK
 ========================================================= */
 
-function renderVideoBlock(video) {
+function renderVideoBlock(
+    video
+) {
 
     if (!video) {
         return "";
     }
 
 
-    let url = null;
+    let url =
+        null;
 
 
-    if (video.type === "file") {
+    if (
+        video.type ===
+        "file"
+    ) {
+
         url =
             video.file?.url;
     }
@@ -1388,6 +1965,7 @@ function renderVideoBlock(video) {
         video.type ===
         "external"
     ) {
+
         url =
             video.external?.url;
     }
@@ -1402,12 +1980,16 @@ function renderVideoBlock(video) {
         <figure
             class="notion-media-item notion-video-item"
         >
+
             <video
                 controls
                 preload="metadata"
                 playsinline
-                src="${escapeAttribute(url)}"
+                src="${escapeAttribute(
+                    url
+                )}"
             ></video>
+
         </figure>
     `;
 }
@@ -1417,86 +1999,117 @@ function renderVideoBlock(video) {
    RICH TEXT → HTML
 ========================================================= */
 
-function renderRichText(items) {
+function renderRichText(
+    items
+) {
 
-    if (!Array.isArray(items)) {
+    if (
+        !Array.isArray(items)
+    ) {
+
         return "";
     }
 
 
     return items
-        .map(item => {
+        .map(
+            item => {
 
-            let text =
-                escapeHTML(
-                    item.plain_text || ""
-                );
-
-
-            const annotations =
-                item.annotations || {};
+                let text =
+                    escapeHTML(
+                        item.plain_text ||
+                        ""
+                    );
 
 
-            if (
-                annotations.code
-            ) {
-                text =
-                    `<code>${text}</code>`;
+                const annotations =
+                    item.annotations ||
+                    {};
+
+
+                /* CODE */
+
+                if (
+                    annotations.code
+                ) {
+
+                    text =
+                        `<code>${text}</code>`;
+                }
+
+
+                /* BOLD */
+
+                if (
+                    annotations.bold
+                ) {
+
+                    text =
+                        `<strong>${text}</strong>`;
+                }
+
+
+                /* ITALIC */
+
+                if (
+                    annotations.italic
+                ) {
+
+                    text =
+                        `<em>${text}</em>`;
+                }
+
+
+                /* STRIKETHROUGH */
+
+                if (
+                    annotations.strikethrough
+                ) {
+
+                    text =
+                        `<s>${text}</s>`;
+                }
+
+
+                /* UNDERLINE */
+
+                if (
+                    annotations.underline
+                ) {
+
+                    text =
+                        `<u>${text}</u>`;
+                }
+
+
+                /* LINK */
+
+                const href =
+                    item.href ||
+                    item.text?.link?.url ||
+                    null;
+
+
+                if (href) {
+
+                    text =
+                        `
+                        <a
+                            href="${escapeAttribute(
+                                href
+                            )}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            ${text}
+                        </a>
+                        `;
+                }
+
+
+                return text;
             }
-
-
-            if (
-                annotations.bold
-            ) {
-                text =
-                    `<strong>${text}</strong>`;
-            }
-
-
-            if (
-                annotations.italic
-            ) {
-                text =
-                    `<em>${text}</em>`;
-            }
-
-
-            if (
-                annotations.strikethrough
-            ) {
-                text =
-                    `<s>${text}</s>`;
-            }
-
-
-            if (
-                annotations.underline
-            ) {
-                text =
-                    `<u>${text}</u>`;
-            }
-
-
-            const href =
-                item.href ||
-                item.text?.link?.url ||
-                null;
-
-
-            if (href) {
-
-                text =
-                    `<a
-                        href="${escapeAttribute(href)}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >${text}</a>`;
-            }
-
-
-            return text;
-
-        })
+        )
         .join("");
 }
 
@@ -1505,9 +2118,13 @@ function renderRichText(items) {
    HELPERS
 ========================================================= */
 
-function stripHTML(value) {
+function stripHTML(
+    value
+) {
 
-    return String(value || "")
+    return String(
+        value || ""
+    )
         .replace(
             /<[^>]*>/g,
             ""
@@ -1515,9 +2132,13 @@ function stripHTML(value) {
 }
 
 
-function escapeHTML(value) {
+function escapeHTML(
+    value
+) {
 
-    return String(value ?? "")
+    return String(
+        value ?? ""
+    )
         .replace(
             /&/g,
             "&amp;"
@@ -1541,10 +2162,19 @@ function escapeHTML(value) {
 }
 
 
-function escapeAttribute(value) {
-    return escapeHTML(value);
+function escapeAttribute(
+    value
+) {
+
+    return escapeHTML(
+        value
+    );
 }
 
+
+/* =========================================================
+   JSON RESPONSE
+========================================================= */
 
 function jsonResponse(
     data,
@@ -1552,4 +2182,19 @@ function jsonResponse(
 ) {
 
     return new Response(
-        JSON.stringify(data),
+        JSON.stringify(
+            data
+        ),
+        {
+            status,
+
+            headers: {
+                "Content-Type":
+                    "application/json; charset=utf-8",
+
+                "Access-Control-Allow-Origin":
+                    "*"
+            }
+        }
+    );
+}
