@@ -315,24 +315,29 @@
     </section>
 </main>
 
-
 <!-- MODAL -->
-
 <div id="eventModal" class="modal">
     <div class="modal-overlay"></div>
     <div class="modal-content">
-        <button class="modal-close" id="modalClose" type="button">×</button>
+        <button class="modal-close" id="modalClose" type="button">
+            ×
+        </button>
 
+        <!-- EVENT IMAGE -->
         <div id="modalImage" class="modal-image"></div>
-        
         <div class="modal-body">
+
+            <!-- TAGS -->
             <div class="modal-tags">
                 <span id="modalArtist" class="tag"></span>
                 <span id="modalType" class="tag"></span>
             </div>
-            
+
+
+            <!-- TITLE -->
             <h2 id="modalTitle"></h2>
-            
+
+            <!-- EVENT INFO -->
             <div class="modal-info">
                 <div class="info-row">
                     <span class="info-label">DATE</span>
@@ -351,10 +356,20 @@
                     <span id="modalLocation"></span>
                 </div>
             </div>
-            <a id="modalLink" class="modal-link hidden" href="#" target="_blank" rel="noopener noreferrer">View Related Link →</a>
+
+            <!-- NOTION PAGE CONTENT -->
+            <div id="modalDescription" class="modal-description">
+                <div class="modal-description-loading">Loading...</div>
+            </div>
+
+            <!-- RELATED LINK -->
+            <a id="modalLink" class="modal-link hidden" href="#" target="_blank" rel="noopener noreferrer">
+                View Related Link →
+            </a>
         </div>
     </div>
 </div>
+
 
 <div id="site-footer"></div>
 
