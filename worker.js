@@ -1213,122 +1213,71 @@ function renderBlocks(blocks) {
         closeList();
 
 
-        /* =========================
-           COLUMN LIST
-        ========================= */
+       /* =========================
+   COLUMN LIST
+========================= */
 
-        if (
-            type === "column_list"
-        ) {
+if (type === "column_list") {
 
-            const children =
-                block._children || [];
+    const columns =
+        (block._children || [])
+            .filter(child =>
+                child &&
+                child.type === "column"
+            );
 
+    /*
+     * IMPORTANT
+     *
+     * Do NOT use isMediaOnlyColumnList()
+     * here.
+     *
+     * Notion columns may contain:
+     * - images
+     * - videos
+     * - text
+     * - captions
+     * - dividers
+     * - other blocks
+     *
+     * We must render EVERY column.
+     */
 
-            /*
-             * If this column_list is basically
-             * an image/video grid, flatten ALL
-             * columns into one Masonry grid.
-             */
+    html += `
+        <div class="notion-grid notion-column-list">
+    `;
 
-            if (
-                isMediaOnlyColumnList(
-                    children
-                )
-            ) {
+    for (const column of columns) {
 
-                const mediaBlocks =
-                    collectMediaBlocks(
-                        children
-                    );
+        html += `
+            <div class="notion-column">
+                ${renderBlocks(
+                    column._children || []
+                )}
+            </div>
+        `;
+    }
 
+    html += `
+        </div>
+    `;
 
-                if (
-                    mediaBlocks.length
-                ) {
-
-                    html += `
-                        <div class="notion-media-grid">
-                    `;
-
-                    for (
-                        const mediaBlock
-                        of mediaBlocks
-                    ) {
-
-                        if (
-                            mediaBlock.type ===
-                            "image"
-                        ) {
-
-                            html +=
-                                renderImageBlock(
-                                    mediaBlock.image
-                                );
-                        }
-
-                        else if (
-                            mediaBlock.type ===
-                            "video"
-                        ) {
-
-                            html +=
-                                renderVideoBlock(
-                                    mediaBlock.video
-                                );
-                        }
-                    }
-
-                    html += `
-                        </div>
-                    `;
-                }
-
-                continue;
-            }
+    continue;
+}
 
 
-            /*
-             * Mixed content:
-             * preserve the columns instead
-             * of flattening them.
-             */
+ /* =========================
+   COLUMN
+========================= */
 
-            html += `
-                <div class="notion-grid">
-                    ${renderBlocks(children)}
-                </div>
-            `;
+if (type === "column") {
 
-            continue;
-        }
+    html += renderBlocks(
+        block._children || []
+    );
 
-
-        /* =========================
-           COLUMN
-        ========================= */
-
-        if (
-            type === "column"
-        ) {
-
-            /*
-             * Do NOT create a separate
-             * media grid for every column.
-             *
-             * column_list handles flattening.
-             */
-
-            html += `
-                <div class="notion-column">
-                    ${renderBlocks(
-                        block._children || []
-                    )}
-                </div>
-            `;
-
-            continue;
-        }
+    continue;
+}
 
 
         /* =========================
