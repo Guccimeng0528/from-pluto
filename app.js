@@ -806,7 +806,7 @@ async function loadEvents() {
 
         const response =
             await fetch(
-                "/api/events",
+                "/data/events",
                 {
                     cache: "no-store"
                 }
