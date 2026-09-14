@@ -1631,10 +1631,375 @@ function createEventCard(event) {
             }
         );
     }
-
-
     return card;
 }
+
+
+
+/* =========================================================
+   MEDIA LIGHTBOX
+========================================================= */
+
+let lightboxImages = [];
+let lightboxIndex = 0;
+let mediaLightbox = null;
+let mediaLightboxImage = null;
+let mediaLightboxCounter = null;
+
+
+/* CREATE LIGHTBOX */
+
+function createMediaLightbox() {
+
+    if (mediaLightbox) {
+        return;
+    }
+
+
+    mediaLightbox =
+        document.createElement("div");
+
+    mediaLightbox.className =
+        "media-lightbox";
+
+
+    mediaLightbox.innerHTML = `
+
+        <button
+            class="media-lightbox-close"
+            type="button"
+            aria-label="Close"
+        >
+            ×
+        </button>
+
+        <button
+            class="media-lightbox-prev"
+            type="button"
+            aria-label="Previous"
+        >
+            ‹
+        </button>
+
+        <img
+            class="media-lightbox-image"
+            src=""
+            alt=""
+        >
+
+        <button
+            class="media-lightbox-next"
+            type="button"
+            aria-label="Next"
+        >
+            ›
+        </button>
+
+        <div
+            class="media-lightbox-counter"
+        ></div>
+    `;
+
+
+    document.body.appendChild(
+        mediaLightbox
+    );
+
+
+    mediaLightboxImage =
+        mediaLightbox.querySelector(
+            ".media-lightbox-image"
+        );
+
+
+    mediaLightboxCounter =
+        mediaLightbox.querySelector(
+            ".media-lightbox-counter"
+        );
+
+
+    const closeButton =
+        mediaLightbox.querySelector(
+            ".media-lightbox-close"
+        );
+
+
+    const prevButton =
+        mediaLightbox.querySelector(
+            ".media-lightbox-prev"
+        );
+
+
+    const nextButton =
+        mediaLightbox.querySelector(
+            ".media-lightbox-next"
+        );
+
+
+    closeButton.addEventListener(
+        "click",
+        closeMediaLightbox
+    );
+
+
+    prevButton.addEventListener(
+        "click",
+        () => {
+            showLightboxImage(
+                lightboxIndex - 1
+            );
+        }
+    );
+
+
+    nextButton.addEventListener(
+        "click",
+        () => {
+            showLightboxImage(
+                lightboxIndex + 1
+            );
+        }
+    );
+
+
+    mediaLightbox.addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target ===
+                mediaLightbox
+            ) {
+                closeMediaLightbox();
+            }
+        }
+    );
+}
+
+
+/* OPEN */
+
+function openMediaLightbox(
+    images,
+    index
+) {
+
+    createMediaLightbox();
+
+
+    lightboxImages =
+        images || [];
+
+
+    lightboxIndex =
+        index || 0;
+
+
+    showLightboxImage(
+        lightboxIndex
+    );
+
+
+    mediaLightbox.classList.add(
+        "active"
+    );
+
+
+    document.body.classList.add(
+        "modal-open"
+    );
+}
+
+
+/* SHOW IMAGE */
+
+function showLightboxImage(
+    index
+) {
+
+    if (
+        !lightboxImages.length
+    ) {
+        return;
+    }
+
+
+    if (index < 0) {
+        index =
+            lightboxImages.length - 1;
+    }
+
+
+    if (
+        index >=
+        lightboxImages.length
+    ) {
+        index = 0;
+    }
+
+
+    lightboxIndex =
+        index;
+
+
+    const image =
+        lightboxImages[
+            lightboxIndex
+        ];
+
+
+    mediaLightboxImage.src =
+        image.src;
+
+
+    mediaLightboxImage.alt =
+        image.alt || "Event image";
+
+
+    mediaLightboxCounter.textContent =
+        `${lightboxIndex + 1} / ${lightboxImages.length}`;
+}
+
+
+/* CLOSE */
+
+function closeMediaLightbox() {
+
+    if (!mediaLightbox) {
+        return;
+    }
+
+
+    mediaLightbox.classList.remove(
+        "active"
+    );
+
+
+    mediaLightboxImage.src = "";
+
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+}
+
+
+/* =========================================================
+   ATTACH IMAGE LIGHTBOX
+========================================================= */
+
+function setupMediaLightbox() {
+
+    document.addEventListener(
+        "click",
+        event => {
+
+            const image =
+                event.target.closest(
+                    ".notion-image-item img"
+                );
+
+
+            if (!image) {
+                return;
+            }
+
+
+            /*
+             * Only collect images from
+             * the current modal description.
+             */
+
+            const container =
+                image.closest(
+                    ".modal-description"
+                );
+
+
+            if (!container) {
+                return;
+            }
+
+
+            const images =
+                Array.from(
+                    container.querySelectorAll(
+                        ".notion-image-item img"
+                    )
+                );
+
+
+            const imageData =
+                images.map(img => ({
+                    src: img.src,
+                    alt: img.alt
+                }));
+
+
+            const index =
+                images.indexOf(image);
+
+
+            event.preventDefault();
+
+
+            openMediaLightbox(
+                imageData,
+                index
+            );
+        }
+    );
+
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                !mediaLightbox ||
+                !mediaLightbox.classList.contains(
+                    "active"
+                )
+            ) {
+                return;
+            }
+
+
+            if (
+                event.key ===
+                "Escape"
+            ) {
+                closeMediaLightbox();
+            }
+
+
+            if (
+                event.key ===
+                "ArrowLeft"
+            ) {
+                showLightboxImage(
+                    lightboxIndex - 1
+                );
+            }
+
+
+            if (
+                event.key ===
+                "ArrowRight"
+            ) {
+                showLightboxImage(
+                    lightboxIndex + 1
+                );
+            }
+        }
+    );
+}
+
+
+/* INITIALIZE */
+
+setupMediaLightbox();
+
 
 
 /* =========================================================
