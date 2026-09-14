@@ -4,6 +4,28 @@
    Author: Guccimeng
    ========================================================= */
 
+
+/* =========================================================
+   SAMPLE DATA
+========================================================= */
+
+const SAMPLE_EVENTS = [
+    {
+        Name: "PRO-TEEN SCHOOL TOUR 2025",
+        Date: "August 1, 2025",
+        Hashtag: null,
+        KW: null,
+        Location: null,
+        NAMTANFILM: ["NAMTAN", "FILM"],
+        Type: "Event",
+        Year: 2025,
+        Image: null
+    }
+];
+
+loadHeader();
+loadFooter();
+
 /* =========================================================
    GLOBAL STATE
 ========================================================= */
@@ -198,8 +220,6 @@ async function init() {
     setupProfileTabs();
     setupEvents();
     loadInstagramFeeds();
-    loadHeader();
-    loadFooter();
 }
 
 
@@ -786,7 +806,7 @@ async function loadEvents() {
 
         const response =
             await fetch(
-                "/api/events",
+                "/data/events",
                 {
                     cache: "no-store"
                 }
