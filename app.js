@@ -2472,7 +2472,7 @@ function formatFullDate(
    MODAL
 ========================================================= */
 
-function openModal(event) {
+async function openModal(event) {
 
     if (!eventModal) {
         return;
@@ -2585,7 +2585,10 @@ function openModal(event) {
 
             modalImage.innerHTML = `
                 <div class="event-image-placeholder">
-                    <img src="images/placeholder.jpg" alt="NF">
+                    <img
+                        src="images/placeholder.jpg"
+                        alt="NF"
+                    >
                 </div>
             `;
         }
@@ -2620,7 +2623,24 @@ function openModal(event) {
 
 
     /* -----------------------------------------------------
-       SHOW MODAL
+       RESET NOTION CONTENT
+    ----------------------------------------------------- */
+
+    if (modalDescription) {
+
+        modalDescription.innerHTML = `
+            <div class="modal-description-loading">
+                Loading...
+            </div>
+        `;
+    }
+
+
+    /* -----------------------------------------------------
+       SHOW MODAL FIRST
+       
+       This allows the user to see the modal immediately
+       while the Notion content is loading.
     ----------------------------------------------------- */
 
     eventModal.classList.add(
@@ -2630,7 +2650,93 @@ function openModal(event) {
     document.body.classList.add(
         "modal-open"
     );
+
+
+    /* -----------------------------------------------------
+       LOAD NOTION PAGE CONTENT
+    ----------------------------------------------------- */
+
+    if (
+        modalDescription &&
+        event.PageID
+    ) {
+
+        try {
+
+            const response =
+                await fetch(
+                    `/data/content/${encodeURIComponent(
+                        event.PageID
+                    )}`,
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    `HTTP ${response.status}`
+                );
+            }
+
+
+            const data =
+                await response.json();
+
+
+            /* ---------------------------------------------
+               CONTENT FOUND
+            --------------------------------------------- */
+
+            if (
+                data &&
+                typeof data.content === "string"
+            ) {
+
+                modalDescription.innerHTML =
+                    data.content;
+
+            } else {
+
+                modalDescription.innerHTML = `
+                    <div class="modal-description-loading">
+                        No additional content.
+                    </div>
+                `;
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "Failed to load Notion content:",
+                error
+            );
+
+
+            modalDescription.innerHTML = `
+                <div class="modal-description-error">
+                    Unable to load event details.
+                </div>
+            `;
+        }
+
+    } else if (modalDescription) {
+
+        /* ---------------------------------------------
+           NO PAGE ID
+        --------------------------------------------- */
+
+        modalDescription.innerHTML = `
+            <div class="modal-description-loading">
+                No additional content.
+            </div>
+        `;
+    }
 }
+
 
 
 /* =========================================================
